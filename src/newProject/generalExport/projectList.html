@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/css/element.css">
+    <script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/jq.js"></script>
+    <script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/<%= htmlWebpackPlugin.options.vue ? htmlWebpackPlugin.options.vue : 'vue.js'%>"></script>
+    <script>
+        if (window.name != "bencalie") {
+            location.reload();
+            window.name = "bencalie";
+        }
+        else {
+            window.name = "";
+        }
+    </script>
+</head>
+<body style="display: none;">
+<div id="app" v-cloak>
+    <ex-header address="<%= htmlWebpackPlugin.options.freemarkerPath %>"></ex-header>
+    <ex-aside menu-index="1-1"></ex-aside>
+    <div class="main">
+        <el-breadcrumb separator-class="el-icon-arrow-right">
+            <el-breadcrumb-item>
+                <a href="">项目列表</a>
+            </el-breadcrumb-item>
+            <el-breadcrumb-item>
+                文件导出
+            </el-breadcrumb-item>
+
+        </el-breadcrumb>
+        <div class="container">
+            <div class="filter-bar">
+                <p>筛选条件</p>
+                <div class="filter-container">
+                    <el-form :inline="true" :model="form" class="demo-form-inline">
+                        <el-form-item label="导出文件名">
+                            <el-input v-model="form.fileName" placeholder="导出文件名"></el-input>
+                        </el-form-item>
+
+                        <el-form-item label="导出类型">
+                            <el-select v-model="form.exportDataType" placeholder="导出类型">
+                                <el-option
+                                        v-for="item in dataTypeList"
+                                        :key="item.key"
+                                        :label="item.value"
+                                        :value="item.key">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+
+                        <el-form-item label="导出进度">
+                            <el-select v-model="form.status" placeholder="导出进度">
+                                <el-option
+                                        v-for="(item,key) in processList"
+                                        :key="key"
+                                        :label="item"
+                                        :value="key">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+
+                        <el-form-item label="创建时间">
+                            <el-date-picker
+                                    v-model="form.createTime"
+                                    type="date"
+                                    :picker-options="pickerOptions1"
+                                    value-format="yyyy-MM-dd"
+                                    placeholder="选择日期">
+                            </el-date-picker>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button size="medium" @click="getProjectExportList()">查询</el-button>
+                        </el-form-item>
+
+                    </el-form>
+
+                </div>
+            </div>
+            <p>
+                <el-button type="primary" @click="toCreate" size="medium" class="create"><i class="el-icon-plus"></i>创建导出
+                </el-button>
+            </p>
+            <div style="clear: both"></div>
+            <div class="tableList">
+                <el-table
+                        ref="multipleTable"
+                        :data="tableList"
+                        tooltip-effect="dark"
+                        stripe
+                        v-loading="tableLoading"
+                        style="width: 100%"
+                        @selection-change="handleSelectionChange">
+                    <el-table-column
+                            type="selection"
+                            width="60">
+                    </el-table-column>
+                    <el-table-column
+                            label="编号"
+                            type="index"
+                    >
+                        <!--  <template slot-scope="scope">{{ scope.row.detailId }}</template>-->
+                    </el-table-column>
+                    <el-table-column
+                            label="导出类型"
+
+                    >
+                        <template slot-scope="scope">
+
+                            {{ exportType(scope.row.exportChoice)}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            prop="fileName"
+                            label="导出文件名"
+                            show-overflow-tooltip>
+                    </el-table-column>
+                    <el-table-column
+
+                            label="项目名称"
+                            show-overflow-tooltip>
+                        <template slot-scope="scope">
+                            {{projectName}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            prop="createTime"
+                            label="创建时间"
+                            show-overflow-tooltip>
+                        <template slot-scope="scope">
+                            {{new Date(scope.row.createTime).Format('yyyy-MM-dd hh:mm:ss')}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="导出进度"
+                            show-overflow-tooltip>
+                        <template slot-scope="scope">
+                            <span :class="{'text-danger': scope.row.status == 9}">
+                                 {{processList[scope.row.status]}}
+                            </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            prop="errorMessage"
+                            label="错误信息"
+                            show-overflow-tooltip>
+                    </el-table-column>
+                    <el-table-column
+                            label="操作"
+                    >
+                        <template slot-scope="scope">
+                            <a class="text-waring m-r handle" @click="reExec(scope.row.id)" v-if="scope.row.status == 9">再次执行</a>
+                            <a class="text-info  m-r handle" @click="downLoad(scope.row.id)"
+                               >下载</a>
+                            <a class="text-danger m-r handle" @click="del([scope.row.id])">删除</a>
+
+                        </template>
+                    </el-table-column>
+                </el-table>
+
+                <transition enter-active-class="zoomIn" leave-active-class="zoomOut">
+                    <div class="table-footer " v-show="selection.length > 0">
+                        <i class="el-icon-delete" @click="del(selectionList)"></i>
+                    </div>
+                </transition>
+
+            </div>
+
+            <el-pagination v-if="tableList.length > 0"
+                           class="text-center"
+                           @size-change="sizeChange"
+                           @current-change="pageChange"
+                           :current-page="form.page"
+                           :page-sizes="[10, 30, 50]"
+                           :page-size="form.size"
+                           layout="total, sizes, prev, pager, next, jumper"
+                           :total="count">
+            </el-pagination>
+            <iframe style="display: none;" :src="downLoadUrl"></iframe>
+        </div>
+    </div>
+</div>
+
+
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/element.js"></script>
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/componets.js"></script>
+</body>
+</html>

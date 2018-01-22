@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据项目管理</title>
+    <#include "../../module/css.html">
+        <link rel="stylesheet" href="${staticAddress}/css/lib/combo.select.css">
+        </head>
+<body class="ck_bg_deepblack" ng-controller="controller">
+<input id="http" type="hidden" value="${staticAddress}">
+<input id="mapJson" type="hidden" value='${mapJson}'>
+<#include "../../module/top.html">
+    <div class="ck_content ck_leftbar_250px ck_bg_gray">
+        <section class="bg_gray">
+            <div class="ck_part">
+                <h3>项目主页</h3>
+            </div>
+        </section>
+        <br/>
+        <section class="ck_pr ck_bg_white " style="padding: 1em">
+            <span style="font-size:24px;font-weight: bold">{{project.projectName}}</span>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <span class="ck_bg_popcorn">{{project.managerName}}</span>
+            <span class="ck_bg_sky-blue">{{project.customerName}}</span>
+            <span class="ck_bg_rosiness">{{project.typeName}}</span>
+            <br/><br/><br/>
+            <span>{{project.projectDescribe}}</span>
+            <a class="ck_pa ck_bg_rosiness ck_btn" style="right:20px;top:10px" ng-if="isEdit"
+               ng-click="goUpdatePage('createProject')">编辑</a>
+        </section>
+        <section ng-if="workList.indexOf('dataImport')!='-1'" class="ck_pr ck_bg_white " style="padding: 1em">
+            <section class="ck_pr">
+                <ul class="ck_tab">
+                    <li class="active">数据导入列表</li>
+                </ul>
+                <a class="ck_pa ck_bg_rosiness ck_btn" style="right:40px;bottom:0" ng-if="isEdit"
+                   ng-click="goUpdatePage('dataImport')">编辑</a>
+            </section>
+            <section class="table-responsive">
+                <div class="dataListMinBox">
+                    <table class="ck_table ck_table_line">
+                        <thead class="bg_gray">
+                        <tr>
+                            <th><span class="ck_pr"> 序号
+                </span>
+                            </th>
+                            <th><span class="ck_pr">文件名
+                                    <ul class="order">
+                        <li ng-class="{true:'active'}[dataImportShowOrder=='name']">
+                            <a ng-click="dataImportShowOrder='name'">A</a></li>
+                       <li ng-class="{true:'active'}[dataImportShowOrder=='-name']">
+                           <a ng-click="dataImportShowOrder='-name'">D</a></li>
+                    </ul>
+                </span>
+                            </th>
+                            <th><span class="ck_pr"> 导入时间
+                                <ul class="order">
+                        <li ng-class="{true:'active'}[dataImportShowOrder=='updatedDate']">
+                            <a ng-click="dataImportShowOrder='updatedDate'">A</a></li>
+                       <li ng-class="{true:'active'}[dataImportShowOrder=='-updatedDate']">
+                           <a ng-click="dataImportShowOrder='-updatedDate'">D</a></li>
+                    </ul>
+                </span></th>
+                            <th>数据类型</th>
+                            <th>数据总量</th>
+                            <th>操作</th>
+                        </thead>
+                        <tbody class="ck_bg_white">
+                        <tr ng-repeat="item in importList | orderBy:dataImportShowOrder">
+                            <td>{{item.paramId}}</td>
+                            <td>{{item.name}}</td>
+                            <td>{{item.updatedDate}}</td>
+                            <td>{{item.typeName}}</td>
+                            <td>{{item.count}}</td>
+                            <td><a class="ck_font_rosiness" target="_blank"
+                                   href="/toDataModular.html?projectId={{projectId}}&paramId={{item.paramId}}&typeNo=dataImport">
+                                &nbsp;查看&nbsp;</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+        <section ng-if="workList.indexOf('dataCrawl')!='-1'" class="ck_pr ck_bg_white " style="padding: 1em">
+            <section class="ck_pr">
+                <ul class="ck_tab">
+                    <li class="active">数据抓取列表</li>
+                </ul>
+                <a class="ck_pa ck_bg_rosiness ck_btn" style="right:40px;bottom:0" ng-if="isEdit"
+                   ng-click="goUpdatePage('dataCrawl')">编辑</a>
+            </section>
+            <section class="table-responsive">
+                <div class="dataListMinBox">
+                    <table class="ck_table ck_table_line">
+                        <thead class="bg_gray">
+                        <tr>
+                            <th>序号</th>
+                            <th>名称</th>
+                            <th>数据源</th>
+                            <th>数据类型</th>
+                            <th>条件</th>
+                            <th>抓取频次</th>
+                            <th>数量</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </thead>
+                        <tbody class="ck_bg_white">
+                        <tr ng-repeat="item in dataCrawlList">
+                            <td>{{item.paramId}}</td>
+                            <td>{{item.taskName}}</td>
+                            <td>{{item.datasourceName}}</td>
+                            <td>{{item.datasourceTypeName}}</td>
+                            <td> <span onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                                       message="{{item.inputParams}}">{{item.inputParams.length>15?item.inputParams.substr(0,15)+"...":item.inputParams}}</span>
+                            </td>
+                            <td>{{item.crawlFreq}}</td>
+                            <td>{{item.count}}</td>
+                            <td>{{item.statusName}}</td>
+                            <td>
+                                <a class="ck_font_blue" target="_blank"
+                                   href="/toDataModular.html?projectId={{projectId}}&paramId={{item.paramId}}&typeNo=dataCrawl">
+                                    &nbsp;查看&nbsp;</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+        <section ng-if="workList.indexOf('semanticAnalysisObject')!='-1'" class="ck_pr ck_bg_white "
+                 style="padding: 1em">
+            <section class="ck_pr">
+                <ul class="ck_tab">
+                    <li class="active">语义分析对象</li>
+                </ul>
+                <a class="ck_pa ck_bg_rosiness ck_btn" style="right:40px;bottom:0" ng-if="isEdit"
+                   ng-click="goUpdatePage('semanticAnalysisObject')">编辑</a>
+            </section>
+            <section class="table-responsive">
+                <div class="dataListMinBox">
+                    <table class="ck_table ck_table_line">
+                        <thead class="bg_gray">
+                        <tr>
+                            <th><span class="ck_pr"> 序号</span>
+                            </th>
+                            <th>数据类型</th>
+                            <th><span class="ck_pr"> 分析对象
+                    <ul class="order">
+                        <li ng-class="{true:'active'}[sortStatus=='analysisObjectName']">
+                            <a ng-click="sortStatus='analysisObjectName'">A</a></li>
+                       <li ng-class="{true:'active'}[sortStatus=='-analysisObjectName']">
+                           <a ng-click="sortStatus='-analysisObjectName'">D</a></li>
+                    </ul>
+                </span></th>
+                            <th>句级</th>
+                            <th>段级</th>
+                            <th>文级</th>
+                            <th>状态</th>
+                        </thead>
+                        <tbody class="ck_bg_white">
+                        <tr ng-repeat="item in semanticAnalysisObjectList|orderBy:sortStatus">
+                            <td>{{item.paramId}}</td>
+                            <td>{{item.dataSourceTypeName}}</td>
+                            <td>{{item.analysisObjectName}}</td>
+                            <td>{{item.sentence}}</td>
+                            <td>{{item.section}}</td>
+                            <td>{{item.article}}</td>
+                            <td>{{item.jobStatus == '0' ? '待启动' : item.jobStatus == '1' ? '启动中' : item.jobStatus == '2' ? '已完成' : item.jobStatus == '4' ? '停止' :'异常'}}</td>
+                            <!--   <td><a class="ck_font_rosiness" target="_blank"
+                                      href="/toDataModular.html?projectId={{projectId}}&paramId={{item.paramId}}&typeNo=semanticAnalysisObject">
+                                   &nbsp;查看&nbsp;</a></td>-->
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+        <section ng-if="workList.indexOf('wordSegmentation')!='-1'" class="ck_pr ck_bg_white "
+                 style="padding: 1em">
+            <section class="ck_pr">
+                <ul class="ck_tab">
+                    <li class="active">分词</li>
+                </ul>
+                <a class="ck_pa ck_bg_rosiness ck_btn" style="right:40px;bottom:0" ng-if="isEdit"
+                   ng-click="goUpdatePage('wordSegmentation')">编辑</a>
+            </section>
+            <section class="table-responsive">
+                <div class="dataListMinBox">
+                    <table class="ck_table ck_table_line">
+                        <thead class="bg_gray">
+                        <tr>
+                            <th> 序号</th>
+                            <th>所选词库</th>
+                            <th>结果类型</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </thead>
+                        <tbody class="ck_bg_white">
+                        <tr ng-repeat="item in wordSegmentationList">
+                            <td>{{item.paramId}}</td>
+                            <td><span onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                                      message="{{item.wordLibrarys}}">{{item.wordLibrarys.length<15?item.wordLibrarys:item.wordLibrarys.substr(0,15)+"..."}}</span>
+                            </td>
+                            <td>{{item.actionTypeName}}</td>
+                            <td><span ng-if="item.jobStatus=='0'">初始</span>
+                                <div ng-if="item.jobStatus=='1'" class="ck_progress"
+                                     ck-controlsprogress="progressWordSegmentation{{item.paramId}}">
+                                    <div class="ck_bg_popcorn ck_pa"
+                                         ck-progress="progressWordSegmentation{{item.paramId}}"
+                                         progress-value="{{item.jobProgress}}">
+                                    </div>
+                                </div>
+                                <span ng-if="item.jobStatus=='2'">已完成</span>
+                                <span ng-if="item.jobStatus=='4'">停止</span>
+                                <span ng-if="item.jobStatus=='9'" onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                                      message="{{item.errorMsg}}">错误</span>
+                            </td>
+                            <td> <!--此处 在下个版本记得解放-->
+                                <a class="ck_font_rosiness" target="_blank"
+                                   href="/toDataModular.html?projectId={{projectId}}&paramId={{item.paramId}}&typeNo=wordSegmentation">
+                                    &nbsp;查看&nbsp;</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+        <section ng-if="workList.indexOf('themeAnalysisSetting')!='-1'" class="ck_pr ck_bg_white "
+                 style="padding: 1em">
+            <section class="ck_pr">
+                <ul class="ck_tab">
+                    <li class="active">主题分析</li>
+                </ul>
+                <a class="ck_pa ck_bg_rosiness ck_btn" style="right:40px;bottom:0" ng-if="isEdit"
+                   ng-click="goUpdatePage('themeAnalysisSetting')">编辑</a>
+            </section>
+            <!-- <section class="table-responsive">
+                 <div class="dataListMinBox">
+                     <table class="ck_table ck_table_line">
+                         <thead class="bg_gray">
+                         <tr>
+                             <th><span class="ck_pr"> 序号</span>
+                             </th>
+                             <th>数据类型</th>
+                             <th>句级</th>
+                             <th>段级</th>
+                             <th>文级</th>
+                             <th>状态</th>
+                             <th>操作</th>
+                         </thead>
+                         <tbody class="ck_bg_white">
+                         <tr ng-repeat="item in themeAnalysisSettingList">
+                             <td>{{$index+1}}</td>
+                             <td>{{item.dataSourceTypeName}}</td>
+                             <td>{{item.sentence}}</td>
+                             <td>{{item.section}}</td>
+                             <td>{{item.article}}</td>
+                             &lt;!&ndash;<div ng-if="item.status==2" class="ck_progress" ck-controlsprogress="progress{{item.id}}"
+                              progress-max="{{item.allTaskcnt}}">
+                             <div class="ck_bg_popcorn ck_progress_animation" ck-progress="progress{{item.id}}"
+                                  progress-value="{{item.completeTaskcnt}}">{{item.completeTaskcnt}}/{{item.allTaskcnt}}
+                             </div>
+                         </div>&ndash;&gt;
+                             <td>{{themeAnalysisSettingStatus}}</td>
+                             <td> &lt;!&ndash;此处 在下个版本记得解放&ndash;&gt;
+                                 <a class="ck_font_rosiness" target="_blank"
+                                    href="/toDataModular.html?projectId={{projectId}}&dataSourceType={{item.dataSourceTypeName}}&typeNo=themeAnalysisSetting">
+                                     &nbsp;查看&nbsp;</a></td>
+                         </tr>
+                         </tbody>
+                     </table>
+                 </div>
+             </section>-->
+            <section class="table-responsive">
+                <div class="dataListMinBox">
+                    <table class="ck_table ck_table_line">
+                        <thead class="bg_gray">
+                        <tr>
+                            <th><span class="ck_pr"> 序号</span>
+                            </th>
+
+                            <th><span class="ck_pr"> 主题域
+                                <!--<ul class="order">
+                                    <li ng-class="{true:'active'}[sortStatus=='subjectAresName']">
+                                        <a ng-click="selectOrder('subjectAresName')">A</a></li>
+                                   <li ng-class="{true:'active'}[sortStatus=='-subjectAresName']">
+                                       <a ng-click="selectOrder('-subjectAresName')">D</a></li>
+                                </ul>-->
+                </span></th>
+                            <th>主题</th>
+                            <th>结果策略</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </thead>
+                        <tbody class="ck_bg_white">
+                        <tr ng-repeat="item in themeAnalysisSettingList">
+                            <td>{{item.paramId}}</td>
+                            <td>{{item.subjectAresName}}</td>
+                            <td><span onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                                      message="{{item.subjectNames}}">{{item.subjectNames.length>15?item.subjectNames.substr(0,15)+"...":item.subjectNames}}</span>
+                            </td>
+                            <td>{{item.resultsStrategyTypeName}}</td>
+                            <td><span ng-if="item.jobStatus=='0'">初始</span>
+                                <div ng-if="item.jobStatus=='1'" class="ck_progress"
+                                     ck-controlsprogress="progressThemeAnalysisSetting{{item.paramId}}">
+                                    <div class="ck_bg_popcorn ck_pa"
+                                         ck-progress="progressThemeAnalysisSetting{{item.paramId}}"
+                                         progress-value="{{item.jobProgress}}">
+                                    </div>
+                                </div>
+                                <span ng-if="item.jobStatus=='2'">已完成</span>
+                                <span ng-if="item.jobStatus=='4'">停止</span>
+                                <span ng-if="item.jobStatus=='9'" onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                                      message="{{item.errorMsg}}">错误</span>
+                            </td>
+                            <td><a class="ck_font_rosiness" target="_blank"
+                                   href="/toDataModular.html?projectId={{projectId}}&paramId={{item.paramId}}&typeNo=themeAnalysisSetting">
+                                &nbsp;查看&nbsp;</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+        <section ng-if="workList.indexOf('topicAnalysisDefinition')!='-1'" class="ck_pr ck_bg_white "
+                 style="padding: 1em">
+            <section class="ck_pr">
+                <ul class="ck_tab">
+                    <li class="active">话题分析</li>
+                </ul>
+                <a class="ck_pa ck_bg_rosiness ck_btn" style="right:40px;bottom:0" ng-if="isEdit"
+                   ng-click="goUpdatePage('topicAnalysisDefinition')">编辑</a>
+            </section>
+            <!--  <section class="table-responsive">
+                  <div class="dataListMinBox">
+                      <table class="ck_table ck_table_line">
+                          <thead class="bg_gray">
+                          <tr>
+                              <th><span class="ck_pr"> 序号</span>
+                              </th>
+                              <th>数据类型</th>
+                              <th>句级</th>
+                              <th>段级</th>
+                              <th>文级</th>
+                              <th>状态</th>
+                              <th>操作</th>
+                          </thead>
+                          <tbody class="ck_bg_white">
+                          <tr ng-repeat="item in topicAnalysisDefinitionList |orderBy:topicAnalysisDefinitionShowOrder">
+                              <td>{{$index+1}}</td>
+                              <td>{{item.dataSourceTypeName}}</td>
+                              <td>{{item.sentence}}</td>
+                              <td>{{item.section}}</td>
+                              <td>{{item.article}}</td>
+                              <td>{{topicAnalysisDefinitionStatus}}</td>
+                              <td> &lt;!&ndash;此处 在下个版本记得解放&ndash;&gt;
+                                  <a class="ck_font_rosiness" target="_blank"
+                                     href="/toDataModular.html?projectId={{projectId}}&dataSourceType={{item.dataSourceTypeName}}&typeNo=themeAnalysisSetting">
+                                      &nbsp;查看&nbsp;</a></td>
+                          </tr>
+                          </tbody>
+                      </table>
+                  </div>
+              </section>-->
+            <section class="table-responsive">
+                <div class="dataListMinBox">
+                    <table class="ck_table ck_table_line">
+                        <thead class="bg_gray">
+                        <tr>
+                            <th><span class="ck_pr"> 序号</span>
+                            </th>
+
+                            <th><span class="ck_pr"> 名称
+                                <!--  <ul class="order">
+                                      <li ng-class="{true:'active'}[sortStatus=='resultName']">
+                                          <a ng-click="selectOrder('resultName')">A</a></li>
+                                     <li ng-class="{true:'active'}[sortStatus=='-resultName']">
+                                         <a ng-click="selectOrder('-resultName')">D</a></li>
+                                  </ul>-->
+                </span></th>
+                            <th>话题层级</th>
+                            <th>打分方式</th>
+                            <th>启动频次</th>
+                            <th>定义</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </thead>
+                        <tbody class="ck_bg_white">
+                        <tr ng-repeat="item in topicAnalysisDefinitionList">
+                            <td>{{item.paramId}}</td>
+                            <td>{{item.resultName}}</td>
+                            <td>{{item.hotspotsLevel}}</td>
+                            <td>{{item.scoringWayName }}</td>
+                            <td>{{item.startFreqTypeName }}</td>
+                            <td>{{item.definitionName }}</td>
+                            <td><span ng-if="item.jobStatus=='0'">初始</span>
+                                <div ng-if="item.jobStatus=='1'" class="ck_progress"
+                                     ck-controlsprogress="progressTopicAnalysisDefinition{{item.paramId}}">
+                                    <div class="ck_bg_popcorn ck_pa"
+                                         ck-progress="progressTopicAnalysisDefinition{{item.paramId}}"
+                                         progress-value="{{item.jobProgress}}">
+                                    </div>
+                                </div>
+                                <span ng-if="item.jobStatus=='2'">已完成</span>
+                                <span ng-if="item.jobStatus=='4'">停止</span>
+                                <span ng-if="item.jobStatus=='9'" onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                                      message="{{item.errorMsg}}">错误</span></td>
+                            <td><a class="ck_font_rosiness" target="_blank"
+                                   href="/toDataModular.html?projectId={{projectId}}&paramId={{item.paramId}}&typeNo=topicAnalysisDefinition">
+                                &nbsp;查看&nbsp;</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+        <section ng-if="workList.indexOf('statisticalAnalysis')!='-1'" class="ck_pr ck_bg_white " style="padding: 1em">
+            <section class="ck_pr">
+                <ul class="ck_tab">
+                    <li class="active">统计分析</li>
+                </ul>
+                <a class="ck_pa ck_bg_rosiness ck_btn" style="right:40px;bottom:0" ng-if="isEdit"
+                   ng-click="goUpdatePage('statisticalAnalysis')">编辑</a>
+            </section>
+            <section class="table-responsive">
+                <div class="dataListMinBox">
+                    <table class="ck_table ck_table_line">
+                        <thead class="bg_gray">
+                        <tr>
+                            <th>序号</th>
+                            <th>名称</th>
+                            <th>数据结果</th>
+                            <th>进度</th>
+                            <th>条件</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </thead>
+                        <tbody class="ck_bg_white">
+                        <tr ng-repeat="item in statisticalAnalysisList">
+                            <td>{{item.paramId}}</td>
+                            <td>{{item.name}}</td>
+                            <td>{{item.dataType}}</td>
+                            <td>{{item.dimension}}</td>
+                            <td>{{item.condition}}</td>
+                            <td><span ng-if="item.jobStatus=='0'">初始</span>
+                                <div ng-if="item.jobStatus=='1'" class="ck_progress"
+                                     ck-controlsprogress="progressThemeAnalysisSetting{{item.paramId}}">
+                                    <div class="ck_bg_popcorn ck_pa"
+                                         ck-progress="progressThemeAnalysisSetting{{item.paramId}}"
+                                         progress-value="{{item.jobProgress}}">
+                                    </div>
+                                </div>
+                                <span ng-if="item.jobStatus=='2'">已完成</span>
+                                <span ng-if="item.jobStatus=='4'">停止</span>
+                                <span ng-if="item.jobStatus=='9'" onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                                      message="{{item.errorMsg}}">错误</span></td>
+                            <td>
+                                <a class="ck_font_rosiness" target="_blank"
+                                   href="/toDataModular.html?projectId={{projectId}}&typeNo=statisticalAnalysis&paramId={{item.paramId}}">
+                                    &nbsp;查看&nbsp;</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+        <section ng-if="workList.indexOf('dataOutput')!='-1'" class="ck_pr ck_bg_white " style="padding: 1em">
+            <section class="ck_pr">
+                <ul class="ck_tab">
+                    <li class="active">数据输出</li>
+                </ul>
+                <a class="ck_pa ck_bg_rosiness ck_btn" style="right:40px;bottom:0" ng-if="isEdit"
+                   ng-click="goUpdatePage('dataOutput')">编辑</a>
+            </section>
+            <section class="table-responsive">
+                <div class="dataListMinBox">
+                    <table class="ck_table ck_table_line">
+                        <thead class="bg_gray">
+                        <tr>
+                            <th> 序号</th>
+                            <th> 名称</th>
+                            <th>值</th>
+                            <th>数据类型</th>
+                            <th>URL</th>
+                        </thead>
+                        <tbody class="ck_bg_white">
+                        <tr ng-repeat="item in outputList | orderBy:sortStatus">
+                            <td>{{item.paramId}}</td>
+                            <td>{{item.name}}</td>
+                            <td>
+                           <span onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                                 message="{{item.mapRelationValueName.replace(',',', ')}}">
+                               {{item.mapRelationValueName.length>15?item.mapRelationValueName.substr(0,15)+"...":item.mapRelationValueName}}</span>
+                            </td>
+                            <td>{{item.typeName}}</td>
+                            <td><a class="ck_font_blue" onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                                   message="{{item.url}}" target="_blank" href="{{item.url}}">{{item.url.length>15?item.url.substr(0,15)+"...":item.url}}</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+        <section ng-if="workList.indexOf('fileOutput')!='-1'" class="ck_pr ck_bg_white " style="padding: 1em">
+            <section class="ck_pr">
+                <ul class="ck_tab">
+                    <li class="active">文件导出</li>
+                </ul>
+                <a class="ck_pa ck_bg_rosiness ck_btn" style="right:40px;bottom:0" ng-if="isEdit"
+                   ng-click="goUpdatePage('fileOutput')">编辑</a>
+            </section>
+            <section class="table-responsive">
+                <div class="dataListMinBox">
+                    <table class="ck_table ck_table_line">
+                        <thead class="bg_gray">
+                        <tr>
+                            <th> 序号</th>
+                            <th> 名称</th>
+                            <th>值</th>
+                            <th>数据类型</th>
+                            <th>分析层级</th>
+                            <th>语料层级</th>
+                            <th>导出状态</th>
+                            <th>操作</th>
+                        </thead>
+                        <tbody class="ck_bg_white">
+                        <tr ng-repeat="item in fileOutputList">
+                            <td>{{item.paramId}}</td>
+                            <td><span onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                                      message="{{item.filename}}">{{item.filename.length<15?item.filename:item.filename.substr(0,15)+"..."}}</span>
+                            </td>
+                            <td>
+                           <span onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                                 message="{{item.queryFieldName}}"> {{item.queryFieldName.length<15?item.queryFieldName:item.queryFieldName.substr(0,15)+"..."}}</span>
+                            </td>
+                            <td> {{item.dataSourceTypeName}}
+                            </td>
+                            <td>{{item.analysisObjectName}}</td>
+                            <td>{{item.analysisLevel}}</td>
+                            <td>
+                                <span ng-if="item.jobStatus=='0'">初始</span>
+                                <div ng-if="item.jobStatus==1" class="ck_progress"
+                                     ck-controlsprogress="progress{{item.paramId}}">
+                                    <div class="ck_bg_popcorn ck_pa" ck-progress="progress{{item.paramId}}"
+                                         progress-value="{{item.jobProgress}}">
+                                    </div>
+                                </div>
+                                <span ng-if="item.jobStatus=='2'">已完成</span>
+                                <span ng-if="item.jobStatus=='9'">错误</span>
+                            </td>
+                            <td><a class="ck_font_rosiness" ng-if="item.jobStatus=='2'"
+                                   ng-click="doDownLoadFile(item.fileUrl)">
+                                &nbsp;下载&nbsp;</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+        <div id="myAlt" class="ck_pa ck_bg_gunjyo ck_dn"
+             style="max-width:300px;color:#FFFFFF;left:40%;top:50%;padding: 0.5em 1em;font-size:14px;border-radius:6px">
+        </div>
+    </div>
+    <#include "../../module/script.html">
+        <script src="${staticAddress}/js/view/projectManager/homePage/projectHomePage.js"></script>
+</body>
+</html>

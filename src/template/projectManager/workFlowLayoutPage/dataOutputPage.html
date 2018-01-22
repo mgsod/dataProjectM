@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据项目管理</title>
+    <#include "../../module/css.html">
+        </head>
+<body class="ck_bg_deepblack" ng-controller="controller">
+<input id="http" type="hidden" value="${staticAddress}">
+<input id="mapJson" type="hidden" value='${mapJson}'>
+<#include "../../module/top.html">
+    <div class="ck_content ck_leftbar_250px ck_bg_gray">
+        <section class="bg_gray">
+            <div class="ck_part">
+                <h3>数据输出</h3>
+            </div>
+        </section>
+        <br/>
+        <section class="ck_pr">
+            <ul class="ck_tab">
+                <li class="active">数据输出设置</li>
+            </ul>
+            <a class="ck_pa ck_bg_rosiness ck_btn" ng-click="dataOutputModule(0)" style="right:40px;bottom:0">+</a>
+        </section>
+        <section class="table-responsive">
+            <div class="dataListMinBox">
+                <table class="ck_table ck_table_line">
+                    <thead class="bg_gray">
+                    <tr>
+                        <th> 序号</th>
+                        <th> 名称</th>
+                        <th> api形式</th>
+                        <th>值</th>
+                        <th>数据类型</th>
+                        <th>URL</th>
+                        <th>操作</th>
+                    </thead>
+                    <tbody class="ck_bg_white">
+                    <tr ng-repeat="item in dataList | orderBy:sortStatus">
+                        <td>{{item.paramId}}</td>
+                        <td>{{item.name}}</td>
+                        <td>{{item.apiType}}</td>
+                        <td>
+                           <span onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                                 message="{{item.mapRelationValueName}}">
+                               {{item.mapRelationValueName.length>15?item.mapRelationValueName.substr(0,15)+"...":item.mapRelationValueName}}</span>
+                        </td>
+                        <td>{{item.typeName}}</td>
+                        <td><a class="ck_font_blue" onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                               message="{{item.url}}" target="_blank" href="{{item.url}}">{{item.url.length>15?item.url.substr(0,15)+"...":item.url}}</a>
+                        </td>
+                        <td><a class="ck_font_rosiness" ng-click="dataOutputModule(1,item)">&nbsp;编辑&nbsp;</a><a
+                                class="ck_font_rosiness" ng-click="doDelete(item.paramId)">&nbsp;删除&nbsp;</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div id="myAlt" class="ck_pa ck_bg_gunjyo ck_dn"
+                     style="max-width:300px;color:#FFFFFF;left:40%;top:50%;padding: 0.5em 1em;font-size:14px;border-radius:6px">
+                </div>
+            </div>
+        </section>
+        <section id="workFlowPart" class="workFlowBox">
+
+        </section>
+        <section>
+            <div class="toolbar tac">
+            <span ng-if="isCreate==0">
+            <a class="ck_btn ck_btn_sure" ng-click="goPre()">上一步</a>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <a class="ck_btn ck_btn_success" ng-click="goNext()">下一步</a>
+            </span>
+                <span ng-if="isCreate==1">
+            <a class="ck_btn ck_btn_success" ng-click="goIndex()">完成</a>
+            </span>
+            </div>
+        </section>
+    </div>
+    <#include "../../module/script.html">
+        <script src="${staticAddress}/js/view/projectManager/workFlowLayoutPage/dataOutputPage.js"></script>
+</body>
+</html>

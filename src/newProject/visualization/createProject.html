@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/css/element.css">
+</head>
+<body style="display: none;">
+
+<div id="app" v-cloak>
+    <ex-header address="<%= htmlWebpackPlugin.options.freemarkerPath %>"></ex-header>
+    <ex-aside menu-index="3-1"></ex-aside>
+    <div class="main">
+        <el-breadcrumb separator-class="el-icon-arrow-right">
+            <el-breadcrumb-item>
+                <a >项目列表</a>
+            </el-breadcrumb-item>
+            <el-breadcrumb-item>
+                <a >新建项目</a>
+            </el-breadcrumb-item>
+        </el-breadcrumb>
+        <div class="container ">
+            <el-row>
+                <el-col :span="10">
+                    <el-form :model="form" :rules="rules" ref="form" label-width="200px" class="demo-ruleForm">
+                        <el-form-item label="项目名称：" prop="projectName">
+                            <el-input v-model="form.projectName"></el-input>
+                        </el-form-item>
+
+                        <el-form-item label="项目描述：">
+                            <el-input type="textarea" v-model="form.projectDescribe"></el-input>
+                        </el-form-item>
+
+                        <el-form-item label="项目类型：" >
+                            <el-radio-group v-model="form.typeId">
+                                <el-radio :label="item.key" :key="item.key" v-for="item in typeList">
+                                    {{item.value}}
+                                </el-radio>
+                            </el-radio-group>
+                        </el-form-item>
+
+                        <el-form-item label="项目经理：" prop="managerId">
+                            <el-select v-model="form.managerId" placeholder="项目经理">
+                                <el-option
+                                        v-for="item in managerList"
+                                        :key="item.id"
+                                        :label="item.username"
+                                        :value="item.id">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+
+
+                        <el-form-item label="客户：" prop="customerId">
+                            <el-select v-model="form.customerId" placeholder="客户">
+                                <el-option
+                                        v-for="item in customerList"
+                                        :key="item.id"
+                                        :label="item.name"
+                                        :value="item.id">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+
+                        <el-form-item label="起止时间：" prop="time">
+                            <el-date-picker
+                                    v-model="form.time"
+                                    type="daterange"
+                                    range-separator="至"
+                                    @change="selectTime"
+                                    start-placeholder="开始日期"
+                                    value-format="yyyy-MM-dd"
+                                    end-placeholder="结束日期">
+                            </el-date-picker>
+                        </el-form-item>
+
+                        <el-form-item label="选择模板：" prop="workFlowTemplateId">
+                            <el-select v-model="form.workFlowTemplateId" placeholder="选择模板">
+                                <el-option value="0" label="自定义模板"></el-option>
+                                <el-option value="1" label="选择模板"></el-option>
+                            </el-select>
+                            <a  class="text-info m-l-md" @click="dialogVisible = true"><i class="el-icon-plus"></i>选择模板</a>
+                            <span class="text-muted m-l" v-show="form.workFlowTemplateId">已选模板：{{temp_templateName}}</span>
+                            <el-dialog title="选择模板" :visible.sync="dialogVisible" width="40%" :close-on-click-modal="false" :close-on-press-escape="false"	>
+                               模板名称： <el-input size="medium" style="width: 220px;" class="m-r"></el-input>
+                                <el-button type="primary" @click="innerVisible = true">搜索</el-button>
+                                <el-table
+                                        :data="templateList"
+                                        border
+                                        stripe
+                                        class="m-t"
+                                        style="width: 100%">
+                                    <el-table-column
+                                            prop="templateName"
+                                            label="模板名称"
+                                            >
+                                    </el-table-column>
+                                    <el-table-column
+                                            label="操作"
+                                            >
+                                        <template slot-scope="scope">
+                                            <a class="text-waring m-r">预览</a>
+                                            <el-button :type="scope.row.templateId == form.workFlowTemplateId ? 'success' : ''"  size="mini" :icon="scope.row.templateId == form.workFlowTemplateId ? 'el-icon-check' : ''" @click="form.workFlowTemplateId = scope.row.templateId;temp_templateName = scope.row.templateName;">{{scope.row.templateId == form.workFlowTemplateId ? '' : '选择'}}</el-button>
+                                        </template>
+                                    </el-table-column>
+                                </el-table>
+                                <el-dialog
+                                        width="40%"
+                                        title="预览"
+                                        :visible.sync="innerVisible"
+                                        append-to-body>
+                                    <img style="width:100%;" src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1515413195611&di=8b060201a67ebe9f496398da42f4572a&imgtype=0&src=http%3A%2F%2Fe.hiphotos.baidu.com%2Fimage%2Fpic%2Fitem%2Ff31fbe096b63f6242f5ff5768d44ebf81a4ca341.jpg" alt="">
+                                </el-dialog>
+                                <span slot="footer" class="dialog-footer">
+                                     <el-button @click="dialogVisible = false;form.workFlowTemplateId = '';">取 消</el-button>
+                                     <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+                                </span>
+                            </el-dialog>
+                        </el-form-item>
+
+                    </el-form>
+
+                </el-col>
+            </el-row>
+            <el-row class="m-t">
+                <el-col :span="5" :offset="8">
+                    <el-button  @click="cancel">取消</el-button>
+                    <el-button type="primary" @click="submitForm('form')">下一步</el-button>
+                </el-col>
+            </el-row>
+
+
+        </div>
+    </div>
+</div>
+
+
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/jq.js" ></script>
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/<%= htmlWebpackPlugin.options.vue ? htmlWebpackPlugin.options.vue : 'vue.js'%>"></script>
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/componets.js"></script>
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/element.js"></script>
+</body>
+</html>

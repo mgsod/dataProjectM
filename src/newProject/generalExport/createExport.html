@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/css/element.css">
+</head>
+<body style="display: none">
+<div id="app" v-cloak>
+    <ex-header address="<%= htmlWebpackPlugin.options.freemarkerPath %>"></ex-header>
+    <ex-aside menu-index="1-1"></ex-aside>
+    <div class="main">
+        <el-breadcrumb separator-class="el-icon-arrow-right">
+            <el-breadcrumb-item>
+                <a href="">项目列表</a>
+            </el-breadcrumb-item>
+            <el-breadcrumb-item>
+                <a href="">文件导出</a>
+            </el-breadcrumb-item>
+            <el-breadcrumb-item>
+                创建导出
+            </el-breadcrumb-item>
+
+        </el-breadcrumb>
+        <div class="container createExport" v-loading="loading" element-loading-text="正在初始化..."
+             element-loading-spinner="el-icon-loading">
+            <el-row type="flex" justify="center">
+                <el-col :span="20">
+                    <el-form label-position="right" :model="form" ref="ruleForm" :rules="rules"
+                             label-width="100px"
+                             class="demo-ruleForm">
+                        <el-form-item label="导出形式：" prop="name">
+                            <el-radio v-model="form.exportType" v-for="item in fileTypeList" :key="item.key"
+                                      :label="item.key">{{item.value}}
+                            </el-radio>
+                        </el-form-item>
+
+                        <el-form-item label="导出文件名：" prop="fileName" class="export-name">
+                            <el-row>
+                                <el-col :span="9">
+                                    <el-input v-model="form.fileName" placeholder="导出文件名"></el-input>
+                                </el-col>
+                            </el-row>
+                        </el-form-item>
+
+                        <el-form-item label="导出选择：" prop="exportChoice">
+                            <el-select v-model="form.exportChoice" @change="selectDataType" placeholder="请选择">
+                                <el-option
+                                        v-for="item in typeList"
+                                        :key="item.key"
+                                        :label="item.value"
+                                        :value="item.key">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                        <span v-show="form.exportChoice">
+                                <el-form-item label="任务名称：" prop="detailId">
+                                <el-select v-model="tempModel.detailId" placeholder="请选择" @change="selectTaskName">
+                                    <el-option
+                                            v-for="item in taskNameList"
+                                            :key="item.detailId"
+                                            :label="item.taskName"
+                                            :value="item.detailId">
+                                    </el-option>
+                                </el-select>
+                            </el-form-item>
+                            </span>
+
+                        <span v-show="form.exportChoice != 'statisticalResult'">
+                                    <span v-show="form.exportChoice != 'semanticResult' && form.exportChoice">
+                                        <el-form-item label="数据方式：" prop="dataWay">
+                                <el-select v-model="form.dataWay" placeholder="请选择" @change="changeDataWay">
+                                    <el-option
+                                            v-for="item in dataWay"
+                                            :key="item.value"
+                                            :label="item.name"
+                                            :disabled="tempModel.detailId == -1 && item.value == 'node'"
+                                            :value="item.value">
+                                    </el-option>
+                                </el-select>
+                            </el-form-item>
+
+                                         <el-form-item label="选择节点："
+                                                       v-show=" form.dataWay === 'node' && tempModel.detailId"
+                                                       prop="nodeTaskDetailId">
+                                <el-select v-model="form.nodeTaskDetailId" placeholder="请选择" @change="selectNode">
+                                    <el-option
+                                            v-for="item in nodeList"
+                                            :key="item.detailId"
+                                            :label="item.name"
+                                            :value="item.detailId">
+                                    </el-option>
+                                </el-select>
+                            </el-form-item>
+
+                                        <el-form-item label="数据筛选条件：" class="filters" prop="filter"
+                                                      v-show="tempModel.detailId && hasField">
+                                             <el-button size="mini" @click="addFilter"
+                                                        v-if="form.fieldAndFilter.length<1"><i
+                                                     class="el-icon-plus"></i></el-button>
+                                <template v-for="(condition,index) in form.fieldAndFilter">
+                                    <div style="margin-bottom: 20px;">
+                                        <el-row :gutter="20">
+                                            <el-col :span="2">
+                                                <el-button size="mini" @click="addFilter"><i
+                                                        class="el-icon-plus"></i></el-button>
+                                                <el-button size="mini" @click="removeFilter(index)"><i
+                                                        class="el-icon-minus"></i></el-button>
+                                            </el-col>
+                                            <el-col :span="4">
+                                                <el-select v-model="condition.typeID" placeholder="请选择"
+                                                           @change="changeTypeOf(condition.typeID,index)">
+                                                    <el-option-group v-for="item in fieldList"
+                                                                     :label="item.value"
+                                                                     :key="item.value"
+                                                    >
+                                                        <el-option
+                                                                v-for="field in item.list"
+                                                                :key="field.fieldType"
+                                                                :label="field.fieldCnName"
+                                                                :value="field.id">
+                                                        </el-option>
+                                                    </el-option-group>
+
+                                                </el-select>
+                                            </el-col>
+                                            <el-col :span="4">
+                                                <el-select v-model="condition.conditionExp"
+                                                           @change="changeConditionExp(condition.conditionExp,index)"
+                                                           v-show="condition.conditionType"
+                                                           placeholder="请选择">
+                                                    <el-option
+                                                            v-for="item in conditionExpList[index]"
+                                                            :key="item.conditionExp"
+                                                            :label="item.conditionExpName"
+                                                            :value="item.conditionExp">
+                                                    </el-option>
+                                                </el-select>
+                                            </el-col>
+                                            <el-col :span="8">
+                                                <span v-show="condition.conditionType === 'datetime' && condition.conditionExp === 'fromTo'">
+                                                        <el-date-picker
+                                                                v-model="condition.time"
+                                                                type="datetimerange"
+                                                                range-separator="至"
+                                                                start-placeholder="开始日期"
+                                                                @change="changeTime($event,condition)"
+                                                                end-placeholder="结束日期">
+                                                        </el-date-picker>
+                                                </span>
+                                                <span v-show="condition.conditionType === 'datetime' && condition.conditionExp === 'specific'">
+                                                        <el-date-picker
+                                                                v-model="condition.time"
+                                                                type="datetime"
+                                                                value-format="yyyy-MM-dd HH:mm:ss"
+                                                                @change="changeTime($event,condition)"
+                                                                placeholder="选择日期">
+                                                        </el-date-picker>
+                                                </span>
+                                                <span v-show="condition.conditionType === 'number'">
+                                                    <el-row :gutter="0">
+                                                        <el-col :span="condition.conditionExp == 'between' ? 11 : 24">
+                                                             <el-input v-model="condition.conditionValue"
+                                                                       placeholder="请输入内容"></el-input>
+                                                        </el-col>
+                                                        <span v-show="condition.conditionExp == 'between'">
+                                                             <el-col :span="2" class="text-center">
+                                                            -
+                                                        </el-col>
+                                                        <el-col :span="11">
+                                                             <el-input v-model="condition.conditionValue2"
+                                                                       placeholder="请输入内容"></el-input>
+                                                        </el-col>
+                                                        </span>
+                                                    </el-row>
+                                        </span>
+                                                <span v-show="condition.conditionType === 'text'">
+
+                                          <el-input v-model="condition.conditionValue" class="text"
+                                                    placeholder="请输入内容"></el-input>
+                                        </span>
+                                            </el-col>
+                                        </el-row>
+
+
+                                    </div>
+
+                                </template>
+
+
+                            </el-form-item>
+
+                                    </span>
+
+                                    <el-form-item label="选择值：" class="selectValue" v-show="form.exportChoice">
+                                            <el-row :gutter="10">
+                                                <template v-for="item in fieldList">
+                                                    <el-col :span="5" style="margin-bottom: 25px;">
+                                                        <el-card class="box-card"  v-show="form.exportChoice != 'semanticResult' && hasField">
+                                                            <div slot="header" class="clearfix">
+                                                               <el-tag type="info">{{item.value}}</el-tag>
+                                                            </div>
+                                                            <el-checkbox-group v-model="checkList"
+                                                                              >
+                                                            <el-checkbox :label="field.id" v-for="field in item.list"
+                                                                         @change="checkedField($event,field,item)"
+
+                                                                         style="width: 100px;" :key="field.fieldEnName">{{field.fieldCnName}}</el-checkbox>
+                                                        </el-checkbox-group>
+                                                        </el-card>
+                                                     </el-col>
+                                                </template>
+                                                <el-col :span="4" style="margin-bottom: 25px;">
+                                                    <el-card v-show="form.exportChoice == 'orAndAn' || form.exportChoice == 'semanticResult'">
+                                                        <el-checkbox-group @change="checkedLevel($event,'type')" v-model="checkSentenceList"                                                                           >
+                                                            <el-checkbox :label="item.value" v-for="item in sentenceList"
+                                                                         style="width: 100px;"
+                                                                         :key="item.value">{{item.name}}</el-checkbox>
+                                                       </el-checkbox-group>
+                                                    </el-card>
+                                                </el-col>
+                                                <el-col :span="4" style="margin-bottom: 25px;">
+                                                    <el-card v-show="form.exportChoice == 'orAndAn' || form.exportChoice == 'semanticResult'">
+                                                        <el-checkbox-group @change="checkedLevel($event,'hierarchy')" v-model="checkTopicList"                                                                           >
+                                                            <el-checkbox :label="item.value" v-for="item in topicList"
+                                                                         style="width: 100px;"
+                                                                         :key="item.value">{{item.name}}</el-checkbox>
+                                                       </el-checkbox-group>
+                                                    </el-card>
+                                                </el-col>
+                                            </el-row>
+
+
+
+
+                            </el-form-item>
+
+                              </span>
+                        <el-form-item class="text-center">
+                            <el-button type="primary" @click="submitForm('ruleForm')" :loading="submitLoading">立即创建</el-button>
+                            <el-button @click="resetForm('ruleForm')">重置</el-button>
+                        </el-form-item>
+                    </el-form>
+                </el-col>
+            </el-row>
+        </div>
+    </div>
+</div>
+</div>
+
+
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/jq.js" ></script>
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/<%= htmlWebpackPlugin.options.vue ? htmlWebpackPlugin.options.vue : 'vue.js'%>"></script>
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/componets.js"></script>
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/element.js"></script>
+</body>
+</html>

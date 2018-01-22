@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/css/element.css">
+    <style>
+        .op a,.op button{
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body style="display: none;">
+
+<div id="app" v-cloak>
+    <ex-header address="<%= htmlWebpackPlugin.options.freemarkerPath %>"></ex-header>
+    <ex-aside menu-index="3-1"></ex-aside>
+    <div class="main">
+        <el-breadcrumb separator-class="el-icon-arrow-right">
+            <el-breadcrumb-item>
+                <a >项目列表</a>
+            </el-breadcrumb-item>
+        </el-breadcrumb>
+        <div class="container ">
+            <div class="filter-bar">
+                <p>筛选条件</p>
+                <div class="filter-container">
+                    <el-form :inline="true" :model="form" class="demo-form-inline">
+                        <el-form-item label="项目经理">
+                            <el-select v-model="form.managerId" placeholder="项目经理">
+                                <el-option
+                                        v-for="item in managerList"
+                                        :key="item.id"
+                                        :label="item.username"
+                                        :value="item.id">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+
+                        <el-form-item label="客户">
+                            <el-select v-model="form.customerId" placeholder="客户">
+                                <el-option
+                                        v-for="item in customerList"
+                                        :key="item.id"
+                                        :label="item.name"
+                                        :value="item.id">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+
+                        <el-form-item label="项目类型">
+                            <el-select v-model="form.type" placeholder="项目类型">
+                                 <el-option
+                                        v-for="item in typeList"
+                                        :key="item.key"
+                                        :label="item.value"
+                                        :value="item.key"
+                                 ></el-option>
+                            </el-select>
+                        </el-form-item>
+
+                     <!--   <el-form-item label="创建时间">
+                            <el-date-picker
+                                    v-model="form.createTime"
+                                    type="date"
+                                    :picker-options="pickerOptions1"
+                                    value-format="yyyy-MM-dd"
+                                    placeholder="选择日期">
+                            </el-date-picker>
+                        </el-form-item>-->
+                        <el-form-item>
+                            <el-button size="medium" @click="getProjectList()">查询</el-button>
+                        </el-form-item>
+
+                    </el-form>
+
+                </div>
+            </div>
+            <p>
+                <el-button type="primary" @click="toCreate" size="medium" class="create"><i class="el-icon-plus"></i>创建可视化项目
+                </el-button>
+            </p>
+            <el-button-group>
+                <el-button v-for="item in statusList" :key="item.k" :type="form.status === item.k ? 'primary' : ''" @click="form.status = item.k;getProjectList()">{{item.v}}</el-button>
+            </el-button-group>
+            <div class="tableList">
+                <el-table
+                        :data="projectList"
+                        border
+                        stripe
+                        @sort-change="sortChange"
+                        style="width: 100%"
+                        :default-sort = "{prop: 'id', order: 'descending'}"
+                >
+                    <el-table-column
+                            prop="id"
+                            label="编号"
+                            sortable="custom"
+                            width="80">
+                    </el-table-column>
+                    <el-table-column
+                            prop="name"
+                            label="项目名称"
+                    >
+                        <template slot-scope="scope">
+                            <a class="text-info">{{scope.row.name}}</a>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            prop="describes"
+                            label="描述"
+                    >
+                    </el-table-column>
+                    <el-table-column
+                            prop="startTime"
+                            label="开始日期"
+                            sortable="custom"
+                    >
+                    </el-table-column>
+                    <el-table-column
+                            prop="endTime"
+                            label="截止日期"
+                            sortable="custom"
+                    >
+                    </el-table-column>
+                    <el-table-column
+                            prop="manager"
+                            label="项目经理"
+                    >
+                    </el-table-column>
+                    <el-table-column
+                            prop="customer"
+                            label="客户"
+                    >
+                    </el-table-column>
+                    <el-table-column
+                            prop="type"
+                            label="类型"
+                    >
+                    </el-table-column>
+                    <el-table-column
+                            prop="status"
+                            label="状态"
+                    >
+                        <template slot-scope="scope">
+                            <a  class="text-info">{{scope.row.status | _status}}</a>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="操作"
+                            width="200"
+                    >
+                        <template slot-scope="scope" >
+                            <div class="text-center op">
+                                <a class="text-waring" :href="'/visWorkFlow/toWorkFlow.html?projectId='+scope.row.id+'&action=pro'">查看</a>
+                                <a class="text-waring" v-if="scope.row.status == 2 || scope.row.status == 5 || scope.row.status == 9">启动</a>
+                                <a class="text-waring" v-if="scope.row.status == 3">停止</a>
+                                <a class="text-waring" v-if="scope.row.status == 3 || scope.row.status == 5 || scope.row.status == 9">导出</a>
+                                <el-button size="mini" v-if="scope.row.visStatus != 0" :type="scope.row.visStatus == 2 ? 'success' : 'warning'">可视化</el-button>
+                            </div>
+
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
+
+            <el-pagination v-if="projectList.length > 0"
+                    class="text-center"
+                    @size-change="sizeChange"
+                    @current-change="pageChange"
+                    :current-page="form.page"
+                    :page-sizes="[15, 30, 50]"
+                    :page-size="form.size"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="total">
+            </el-pagination>
+
+        </div>
+    </div>
+</div>
+
+
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/jq.js" ></script>
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/<%= htmlWebpackPlugin.options.vue ? htmlWebpackPlugin.options.vue : 'vue.js'%>"></script>
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/componets.js"></script>
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/element.js"></script>
+</body>
+</html>

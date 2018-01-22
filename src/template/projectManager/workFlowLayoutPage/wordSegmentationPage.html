@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据项目管理</title>
+    <#include "../../module/css.html">
+        <link rel="stylesheet" href="${staticAddress}/css/lib/jquery.treemenu.css">
+        </head>
+<body class="ck_bg_deepblack" ng-controller="controller">
+<input id="http" type="hidden" value="${staticAddress}">
+<input id="mapJson" type="hidden" value='${mapJson}'>
+<#include "../../module/top.html">
+    <div class="ck_content ck_leftbar_250px ck_bg_gray">
+        <section class="bg_gray">
+            <div class="ck_part">
+                <h3>分词设置</h3>
+            </div>
+        </section>
+        <br/>
+        <section id="workFlowPart" class="workFlowBox">
+
+        </section>
+        <section>
+            <div class="toolbar tac">
+            <span ng-if="isCreate==0">
+            <a class="ck_btn ck_btn_sure" ng-click="goPre()">上一步</a>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <a class="ck_btn ck_btn_success" ng-click="goNext()">下一步</a>
+            </span>
+                <span ng-if="isCreate==1">
+            <a class="ck_btn ck_btn_success" ng-click="goIndex()">完成</a>
+            </span>
+            </div>
+        </section>
+    </div>
+    <#include "../../module/script.html">
+        <script src="${staticAddress}/js/view/projectManager/workFlowLayoutPage/wordSegmentationPage.js"></script>
+</body>
+</html>

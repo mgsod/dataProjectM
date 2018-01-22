@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据项目管理</title>
+    <#include "../../module/css.html">
+        </head>
+<body class="ck_bg_deepblack" ng-controller="controller">
+<input id="http" type="hidden" value="${staticAddress}">
+<input id="mapJson" type="hidden" value='${mapJson}'>
+<#include "../../module/top.html">
+    <div class="ck_content ck_leftbar_250px ck_bg_gray">
+        <section class="bg_gray">
+            <div class="ck_part">
+                <h3>语义分析对象设置</h3>
+            </div>
+        </section>
+        <br/>
+        <section class="ck_pr">
+            <ul class="ck_tab">
+                <li class="active">语义分析对象列表</li>
+            </ul>
+        </section>
+        <section class="table-responsive">
+            <div class="dataListMinBox">
+                <table class="ck_table ck_table_line">
+                    <thead class="bg_gray">
+                    <tr>
+                        <th><span class="ck_pr"> 序号</span>
+                        </th>
+                        <th>数据类型</th>
+                        <th><span class="ck_pr"> 分析对象
+                    <ul class="order">
+                        <li ng-class="{true:'active'}[sortStatus=='analysisObjectName']">
+                            <a ng-click="selectOrder('analysisObjectName')">A</a></li>
+                       <li ng-class="{true:'active'}[sortStatus=='-analysisObjectName']">
+                           <a ng-click="selectOrder('-analysisObjectName')">D</a></li>
+                    </ul>
+                </span></th>
+                        <th>句级</th>
+                        <th>段级</th>
+                        <th>文级</th>
+                        <th>操作</th>
+                    </thead>
+                    <tbody class="ck_bg_white">
+                    <tr ng-repeat="item in dataList | orderBy:sortStatus">
+                        <td>{{item.paramId}}</td>
+                        <td>{{item.dataSourceTypeName}}</td>
+                        <td>{{item.analysisObjectName}}</td>
+                        <td>{{item.sentence}}</td>
+                        <td>{{item.section}}</td>
+                        <td>{{item.article}}</td>
+                        <td><a class="ck_font_rosiness" ng-click="doUpdate(item,1)">&nbsp;编辑&nbsp;</a><a
+                                class="ck_font_rosiness" ng-click="doUpdate(item,0)">&nbsp;不定义&nbsp;</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <br/>
+        <section id="workFlowPart" class="workFlowBox"></section>
+        <section>
+            <div class="toolbar tac">
+            <span ng-if="isCreate==0">
+            <a class="ck_btn ck_btn_sure" ng-click="goPre()">上一步</a>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <a class="ck_btn ck_btn_success" ng-click="goNext()">下一步</a>
+            </span>
+                <span ng-if="isCreate==1">
+            <a class="ck_btn ck_btn_success" ng-click="goIndex()">完成</a>
+            </span>
+            </div>
+        </section>
+    </div>
+    <#include "../../module/script.html">
+        <script src="${staticAddress}/js/view/projectManager/workFlowLayoutPage/semanticAnalysisObjectPage.js"></script>
+</body>
+</html>

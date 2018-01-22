@@ -1,0 +1,115 @@
+<div class="col_part ck_bg_white">
+    <section>
+        <h2>语义分析对象</h2>
+    </section>
+    <br/>
+    <div class="col_md_3 tar">
+        编辑类型:
+    </div>
+    <div class="col_md_6 tal">
+        <span class="ck_font_rosiness"> {{updateItem.jsonParam.dataSourceTypeName}}</span>
+    </div>
+    <br/>
+    <div class="col_md_3 tar">
+        分析对象:
+    </div>
+    <br/>
+    <div class="col_md_3">
+    </div>
+    <div class="col_md_6">
+        <ul>
+            <li class="padding_2px" ng-repeat="item in updateItem.jsonParam.analysisObject">
+                <a class="ck_btn">+</a>
+                <a class="ck_btn ck_btn_danger" ng-click="deleteAnalysisObject(item)">-</a>
+                <select ng-model="item.contentType">
+                    <option ng-repeat="jtem in textList" value="{{jtem.contentType}}">{{jtem.contentTypeName}}</option>
+                </select>
+                <input type="radio" ng-checked="item.subType==1" name="radio{{$index}}" ng-click="item.subType=1"/>全文
+                <input type="radio" ng-checked="item.subType==2" name="radio{{$index}}"
+                       ng-click="item.subType=2"/><input ng-if="item.subType==2" class="minInputSize" type="number"
+                                                         ng-model="item.value"/><span
+                    ng-if="item.subType!=2">_______</span>字
+                <input type="radio" ng-checked="item.subType==3" name="radio{{$index}}"
+                       ng-click="item.subType=3"/><input ng-if="item.subType==3" class="minInputSize" type="number"
+                                                         ng-model="item.value"/><span
+                    ng-if="item.subType!=3">_______</span>段
+                <input type="radio" ng-checked="item.subType==4" name="radio{{$index}}"
+                       ng-click="item.subType=4"/><input ng-if="item.subType==4" class="minInputSize" type="number"
+                                                         ng-model="item.value"/><span
+                    ng-if="item.subType!=4">_______</span>句
+            </li>
+            <li class="padding_2px">
+                <a class="ck_btn ck_btn_sure"
+                   ng-click="addAnalysisObject()">+</a>
+                <a class="ck_btn">-</a>
+                <select ng-model="createItem.contentType">
+                    <option ng-repeat="jtem in textList" value="{{jtem.contentType}}">{{jtem.contentTypeName}}</option>
+                </select>
+                <input type="radio" ng-checked="createItem.subType==1" name="radio" ng-click="createItem.subType=1"/>全文
+                <input type="radio" ng-checked="createItem.subType==2" name="radio"
+                       ng-click="createItem.subType=2"/><input ng-if="createItem.subType==2" class="minInputSize"
+                                                               type="number" ng-model="createItem.value"/><span
+                    ng-if="createItem.subType!=2">_______</span>字
+                <input type="radio" ng-checked="createItem.subType==3" name="radio"
+                       ng-click="createItem.subType=3"/><input ng-if="createItem.subType==3" class="minInputSize"
+                                                               type="number" ng-model="createItem.value"/><span
+                    ng-if="createItem.subType!=3">_______</span>段
+                <input type="radio" ng-checked="createItem.subType==4" name="radio"
+                       ng-click="createItem.subType=4"/><input ng-if="createItem.subType==4" class="minInputSize"
+                                                               type="number" ng-model="createItem.value"/><span
+                    ng-if="createItem.subType!=4">_______</span>句
+            </li>
+        </ul>
+    </div>
+    <div class="col_md_3 tar">
+        分析层级:
+    </div>
+    <br/>
+    <div class="col_md_3">
+    </div>
+    <div class="col_md_6">
+        <ul>
+            <li class="padding_2px">
+                分词层级：
+                <input type="checkbox" ng-checked="updateItem.jsonParam.analysisHierarchy[0].hierarchy.indexOf('1')!=-1"
+                       ng-click="updateCheckbox($event,updateItem.jsonParam.analysisHierarchy[0],1)">句子 &nbsp;&nbsp;
+                <input type="checkbox" ng-checked="updateItem.jsonParam.analysisHierarchy[0].hierarchy.indexOf('2')!=-1"
+                       ng-click="updateCheckbox($event,updateItem.jsonParam.analysisHierarchy[0],2)">段落&nbsp;&nbsp;
+                <input type="checkbox" ng-checked="updateItem.jsonParam.analysisHierarchy[0].hierarchy.indexOf('3')!=-1"
+                       ng-click="updateCheckbox($event,updateItem.jsonParam.analysisHierarchy[0],3)">文章&nbsp;&nbsp;
+            </li>
+            <li class="padding_2px">
+                主题层级：
+                <input type="checkbox" ng-checked="updateItem.jsonParam.analysisHierarchy[1].hierarchy.indexOf('1')!=-1"
+                       ng-click="updateCheckbox($event,updateItem.jsonParam.analysisHierarchy[1],1)">句子 &nbsp;&nbsp;
+                <input type="checkbox" ng-checked="updateItem.jsonParam.analysisHierarchy[1].hierarchy.indexOf('2')!=-1"
+                       ng-click="updateCheckbox($event,updateItem.jsonParam.analysisHierarchy[1],2)">段落&nbsp;&nbsp;
+                <input type="checkbox" ng-checked="updateItem.jsonParam.analysisHierarchy[1].hierarchy.indexOf('3')!=-1"
+                       ng-click="updateCheckbox($event,updateItem.jsonParam.analysisHierarchy[1],3)">文章&nbsp;&nbsp;
+                <select ng-model="updateItem.jsonParam.analysisHierarchy[1].calculation">
+                    <option value="1">取大值</option>
+                    <option value="2">简单相加</option>
+                    <option value="3">次数加权</option>
+                </select>
+            </li>
+            <li class="padding_2px">
+                话题层级：
+                <input type="checkbox" ng-checked="updateItem.jsonParam.analysisHierarchy[2].hierarchy.indexOf('1')!=-1"
+                       ng-click="updateCheckbox($event,updateItem.jsonParam.analysisHierarchy[2],1)">句子 &nbsp;&nbsp;
+                <input type="checkbox" ng-checked="updateItem.jsonParam.analysisHierarchy[2].hierarchy.indexOf('2')!=-1"
+                       ng-click="updateCheckbox($event,updateItem.jsonParam.analysisHierarchy[2],2)">段落&nbsp;&nbsp;
+                <input type="checkbox" ng-checked="updateItem.jsonParam.analysisHierarchy[2].hierarchy.indexOf('3')!=-1"
+                       ng-click="updateCheckbox($event,updateItem.jsonParam.analysisHierarchy[2],3)">文章&nbsp;&nbsp;
+                <select ng-model="updateItem.jsonParam.analysisHierarchy[2].calculation">
+                    <option value="1">取大值</option>
+                    <option value="2">简单相加</option>
+                    <option value="3">次数加权</option>
+                </select>
+            </li>
+        </ul>
+    </div>
+    <section class="tar padding_2px">
+        <a class="ck_btn ck_btn_sure" ng-click="doUpload()">确定</a>
+        <a class="ck_btn ck_btn_cancel" ng-click="cancel()">取消</a>
+    </section>
+</div>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>API</title>
+    <link rel="stylesheet" href="../../css/common/common.css">
+    <link rel="stylesheet" href="../../css/public/api/main.css">
+    <link rel="stylesheet" href="../../css/lib/foundation-datepicker.min.css">
+</head>
+<body class="ck_bg_kon" ng-controller="apicontroller">
+<input id="http" type="hidden" value="../../">
+<div class="ck_topbar">
+    <div class="ck_title_font ck_title"><a>xxxxx系统</a></div>
+    <nav class="ck_nav_topList ck_fr">
+        <ul>
+            <li><a ck-controlsdefaultclick="popup3" class="ck_btn ck_pr"><img class="ck_avatar"
+                                                                              src="../../images/glyphicons/png/glyphicons-8-user-remove.png">
+                <div ck-defaultclick="popup3" class="ck_min_popup ck_bg_sky-blue ck_popup_bright ck_dn">
+                    <nav class="ck_list">
+                        <ul>
+                            <li>警告消息<span class="ck_messageIcon ck_bg_popcorn" style="right:25px;">1</span></li>
+                            <li>错误消息<span class="ck_messageIcon ck_bg_rosiness" style="right:25px;">21</span></li>
+                            <li>普通消息<span class="ck_messageIcon ck_bg_wasurenagusa" style="right:25px;">13</span></li>
+                            <li>成功消息<span class="ck_messageIcon ck_bg_success" style="right:25px;">7</span></li>
+                        </ul>
+                    </nav>
+                </div>
+            </a></li>
+            <li><a class="ck_btn" href="login.html">退出</a></li>
+        </ul>
+    </nav>
+    <span ck-controlsnav="menu" class="ck_nav_menu_btn"></span>
+    <nav ck-nav="menu" id="testMenu" class="ck_nav_menu ck_font_white">
+        <ul class="ck_vertical_menu">
+            <li ck-controlsdefaultclick="index"><a href="index.html">index</a></li>
+            <ul class="ck_dn" ck-defaultclick="index">
+                <li>test1</li>
+                <li>test2</li>
+                <li>test3</li>
+            </ul>
+            <li><a href="layout.html">layouts</a></li>
+            <li><a href="table.html">table</a></li>
+            <li><a href="chart.html">chart</a></li>
+        </ul>
+    </nav>
+</div>
+<div class="ck_content ck_leftbar_250px ck_bg_white">
+    <section class="ck_group">
+        <h2>时间选择器</h2>
+        <div class="ck_part">
+            <span>默认格式</span>
+            <input type="text" value="" id="timepicker2"/>
+        </div>
+        <div class="ck_part">
+            <span>转换模式</span>
+            <input type="text" value="" id="timepicker"/>
+        </div>
+        <div class="ck_part">
+            <span>前后连锁</span>
+            <input type="text" value="" id="timepicker3"/>
+            <input type="text" value="" id="timepicker4"/>
+        </div>
+    </section>
+    <section class="ck_group">
+        <h2>进度条</h2>
+        <div class="ck_part tz" style="width:400px;">
+            <div class="ck_progress" ck-controlsprogress="test1" progressMax="80">
+                <div class="ck_bg_black ck_progress_animation" ck-progress="test1" progressValue="60"></div>
+            </div>
+            <div class="ck_progress" ck-controlsprogress="test2">
+                <div class="ck_bg_rosiness ck_progress_animation" ck-progress="test2"></div>
+            </div>
+            <div class="ck_progress" ck-controlsprogress="test3" progressMax="45">
+                <div class="ck_bg_kon ck_progress_animation" ck-progress="test3" progressValue="30"></div>
+            </div>
+        </div>
+    </section>
+    <section class="ck_group">
+        <h2>弹出框</h2>
+        <div class="ck_part">
+            <a id="testPopup" ck-controlsdefaultclick="popup" class="ck_popup_group ck_btn_success ck_btn">显示普通弹出框
+                <div ck-defaultclick="popup" class="ck_popup ck_bg_rosiness ck_popup_bleft ck_dn"><span
+                        class="ck_normal_font ck_font_white">正常</span>
+                </div>
+            </a>
+        </div>
+        <div class="ck_part">
+            <a id="testPopupmin" ck-controlsdefaultclick="popup2" class="ck_popup_group ck_btn_success ck_btn">显示小型弹出框
+                <div ck-defaultclick="popup2" class="ck_min_popup ck_bg_rosiness ck_popup_bright ck_dn"><span
+                        class="ck_min_font ck_font_white">小号</span>
+                </div>
+            </a>
+        </div>
+    </section>
+    <section class="ck_group">
+        <h2>pagination</h2>
+        <div>
+            <ul class="ck_pagination" ck-pagination="pagination">
+                <li><a href="#">《</a></li>
+                <li><a href="#">1</a></li>
+                <li><a href="#">2</a></li>
+                <li><a href="#">3</a></li>
+                <li><a href="#">4</a></li>
+                <li><a href="#">》</a></li>
+            </ul>
+        </div>
+    </section>
+    <section class="ck_group">
+        <h2>基础颜色</h2>
+        <div class="ck_part">
+            <div class="ck_btn ck_bg_blue" style="margin: .5em;color:white">ck_bg_blue</div>
+            <div class="ck_btn ck_bg_sky-blue" style="margin: .5em;color:white">ck_bg_sky-blue</div>
+            <div class="ck_btn ck_bg_white" style="margin: .5em;color:black">ck_bg_white</div>
+            <div class="ck_btn ck_bg_rosiness" style="margin: .5em;color:white">ck_bg_rosiness</div>
+            <div class="ck_btn ck_bg_popcorn " style="margin: .5em;color:white">ck_bg_popcorn</div>
+            <div class="ck_btn ck_bg_somber" style="margin: .5em;color:white">ck_bg_somber</div>
+            <div class="ck_btn ck_bg_black" style="margin: .5em;color:white">ck_bg_black</div>
+            <div class="ck_btn ck_bg_deepblack" style="margin: .5em;color:white">ck_bg_deepblack</div>
+            <div class="ck_btn ck_bg_kachi" style="margin: .5em;color:white">ck_bg_kachi</div>
+            <div class="ck_btn ck_bg_kon" style="margin: .5em;color:white">ck_bg_kon</div>
+            <div class="ck_btn ck_bg_kurotsurubami" style="margin: .5em;color:white">ck_bg_kurotsurubami</div>
+            <div class="ck_btn ck_bg_tsuyukusa" style="margin: .5em;color:white">ck_bg_tsuyukusa</div>
+            <div class="ck_btn ck_bg_gunjyo" style="margin: .5em;color:white">ck_bg_gunjyo</div>
+            <div class="ck_btn ck_bg_wasurenagusa" style="margin: .5em;color:white">ck_bg_wasurenagusa</div>
+            <div class="ck_btn ck_bg_hanada" style="margin: .5em;color:white">ck_bg_hanada</div>
+        </div>
+    </section>
+    <section class="ck_group">
+        <h2>按钮</h2>
+        <div class="ck_part">
+            <a class="ck_btn ck_btn_cancel">按钮</a>
+            <a class="ck_btn ck_btn_sure">按钮</a>
+            <a class="ck_btn ck_btn_success">按钮</a>
+            <a class="ck_btn ck_btn_warn">按钮</a>
+            <a class="ck_btn ck_btn_danger">按钮</a>
+        </div>
+    </section>
+</div>
+<script src="../../js/lib/require.js"></script>
+<script src="../../js/config.js"></script>
+<script src="../../js/view/api/main.js"></script>
+</body>
+</html>

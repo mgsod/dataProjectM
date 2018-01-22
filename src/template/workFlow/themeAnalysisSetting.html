@@ -1,0 +1,52 @@
+<div class="col_part ck_bg_white">
+    <section>
+        <h2>主题分析</h2>
+    </section>
+    <br/>
+    <section style="min-height:200px;">
+        <!--<div id="treeBox" class="tal"
+             style="width:150px;height:165px;left:270px;overflow-y:auto;position:absolute;border:1px solid black">
+        </div>-->
+
+        <div id="tree" class="ztree" style="    width: 150px;
+    position: absolute;
+    left: 350px;
+    border: 1px solid;
+    background-color: #f0f3f4;"></div>
+
+
+        <div style="width:250px;">
+            主题域:
+            {{updateItem.subjectAresName}}
+            <br/> <br/>
+            主题:
+            {{updateItem.subjectNames}}
+            <br/> <br/>
+            结果策略:<br/> <br/>
+            <input type="radio" name="resultsStrategyType" ng-checked="updateItem.resultsStrategyType==1"
+                   ng-click="updateItem.resultsStrategyType=1;updateItem.value=0"/>精英团
+            <br/><br/>
+            top:
+            <input type="radio" name="resultsStrategyType" ng-checked="updateItem.resultsStrategyType==2"
+                   ng-click="updateItem.resultsStrategyType=2;updateItem.value=0"/>
+            <input ng-if="updateItem.resultsStrategyType==2" class="minInputSize" type="text"
+                   ng-model="updateItem.resultsStrategyTypeValue"/>
+            <span ng-if="updateItem.resultsStrategyType!=2">_______</span>
+            <input type="radio" name="resultsStrategyType" ng-checked="updateItem.resultsStrategyType==3"
+                   ng-click="updateItem.resultsStrategyType=3;updateItem.value=0"/>
+            <input ng-if="updateItem.resultsStrategyType==3" class="minInputSize" type="text"
+                   ng-model="updateItem.resultsStrategyTypeValue"/>
+            <span ng-if="updateItem.resultsStrategyType!=3">_______</span>%
+            <br/><br/>
+            <input type="radio" name="resultsStrategyType" ng-checked="updateItem.resultsStrategyType==4"
+                   ng-click="updateItem.resultsStrategyType=4;updateItem.value=0"/>阈值：
+            <input ng-if="updateItem.resultsStrategyType==4" class="minInputSize" type="text"
+                   ng-model="updateItem.resultsStrategyTypeValue"/>
+            <span ng-if="updateItem.resultsStrategyType!=4">_______</span>
+        </div>
+    </section>
+    <section class="tar padding_2px">
+        <a class="ck_btn ck_btn_sure" ng-click="doUpload()">确定</a>
+        <a class="ck_btn ck_btn_cancel" ng-click="cancel()">取消</a>
+    </section>
+</div>

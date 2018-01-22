@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据项目管理</title>
+    <link rel="stylesheet" href="../../css/common/common.css">
+    <link rel="stylesheet" href="../../css/public/api/main.css">
+    <link rel="stylesheet" href="../../css/public/index.css">
+</head>
+<body ng-controller="controller" class="ck_bg_white">
+<input id="http" type="hidden" value="../.."/>
+<input id="mapJson" type="hidden"
+       value='{"projectId":"1","typeNo":"dataImport","paramId":"1","tabList":[{"id":"1","name":"刺激"}, {"id":"2","name":"段及"}, {"id":"3","name":"文集"}]}'/>
+<section class="padding_2px">
+    <ul class="ck_tab">
+        <li ng-repeat="item in tabList" ng-click="searchParamter.type=item.id;searchParamter.lastIndexId ='';searchList('reset')"
+            ng-class="{true:'active'}[searchParamter.type==item.id]">{{item.name}}
+        </li>
+    </ul>
+</section>
+<section class="table-responsive padding_2px">
+    <table class="ck_table ck_table_line">
+        <thead class="bg_gray">
+        <tr>
+            <th ng-repeat="item in titleList">{{item}}</th>
+        </tr>
+        </thead>
+        <tbody class="ck_bg_white">
+        <tr ng-repeat="item in dataList">
+            <td ng-repeat="j in titleList">
+                <a onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                   message="{{item[$index].length<200?item[$index]:item[$index].substr(0,200)+'...'}}">{{item[$index].length<15?item[$index]:item[$index].substr(0,14)+"..."}}</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</section>
+<div id="myAlt" class="ck_pa ck_bg_gunjyo ck_dn"
+     style="max-width:500px;color:#FFFFFF;left:40%;top:50%;padding: 0.5em 1em;font-size:14px;border-radius:6px">
+</div>
+<section>
+    <div class="toolbar ck_bg_white" ng-if="totalPage>1">
+        <ul class="ck_pagination">
+            <li><a ng-click="searchList('first')"
+                   ng-class="{true:'disable'}[searchParamter.page=='1']">《</a>
+            </li>
+            <li><a ng-click="searchList('pre')"
+                   ng-class="{true:'disable'}[searchParamter.page=='1']">上一步</a>
+            </li>
+            <li><span>当前页:{{searchParamter.page}}，共{{totalPage}}页</span></li>
+            <li><a ng-click="searchList('next')"
+                   ng-class="{true:'disable'}[searchParamter.page==totalPage]">下一步</a></li>
+            <li><a ng-click="searchList('last')"
+                   ng-class="{true:'disable'}[searchParamter.page==totalPage]">》</a></li>
+        </ul>
+    </div>
+</section>
+</body>
+<script src="../../js/lib/require.js"></script>
+<script src="../../js/config.js"></script>
+<script src="../../js/view/showData/showData.js"></script>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据项目管理</title>
+    <link rel="stylesheet" href="../../../css/common/common.css">
+    <link rel="stylesheet" href="../../../css/public/api/main.css">
+    <link rel="stylesheet" href="../../../css/public/index.css">
+    <link rel="stylesheet" href="../../../css/lib/combo.select.css">
+</head>
+<body class="ck_bg_deepblack" ng-controller="controller">
+<input id="http" type="hidden" value="../../../">
+<div class="ck_topbar ck_bg_kon">
+    <div class="ck_title_font ck_title ck_font_white">数据项目管理系统</div>
+    <nav class="ck_nav_topList ck_fr">
+        <ul>
+            <li class="ck_pr"><a ck-controlsdefaultclick="avater" class="ck_btn"><img class="ck_avatar"
+                                                                                      src="../../../images/avater/ee.jpg">
+            </a>
+                <div ck-defaultclick="avater" class="ck_popup_auto ck_bg_sky-blue ck_popup_bright ck_dn">
+                    <a class="ck_font_white" href="#">logout</a>
+                </div>
+            </li>
+        </ul>
+    </nav>
+    <span ck-controlsnav="menu" class="ck_nav_menu_btn"></span>
+    <nav ck-nav="menu" id="testMenu" class="ck_nav_menu ck_font_white">
+        <ul class="ck_vertical_menu">
+            <li ck-controlsdefaultclick="projectManager">项目管理 <span class="downIcon"> > </span></li>
+            <ul class="ck_dn ck_bg_blue" ck-defaultclick="projectManager">
+                <li><a href="../listPage/projectListPage.html">项目列表</a></li>
+                <li><a href="../createPage/projectCreatePage.html">新建项目</a></li>
+            </ul>
+        </ul>
+    </nav>
+</div>
+<div class="ck_content ck_leftbar_250px ck_bg_gray">
+    <section class="bg_gray">
+        <div class="ck_part">
+            <h3>项目列表</h3>
+        </div>
+    </section>
+    <br/>
+    <section>
+        <ul class="ck_tab">
+            <li class="active">筛选条件查看</li>
+        </ul>
+        <div class="toolbar ck_bg_white ck_pr">
+            <div class="ck_part">
+                项目经理:&nbsp
+                <select id="projectManager" ng-model="searchParamter.managerId">
+                    <option value="">全部</option>
+                    <option ng-repeat="item in managerList" value="{{item.id}}">{{item.username}}</option>
+                </select>
+            </div>
+            <div class="ck_part">
+                客户:&nbsp
+                <select id="customer" ng-model="searchParamter.customerId">
+                    <option value="">全部</option>
+                    <option ng-repeat="item in customerList" value="{{item.id}}">{{item.name}}</option>
+                </select>
+            </div>
+            <div class="ck_part">
+                项目类型:&nbsp<select class="pub_select" ng-model="searchParamter.type">
+                <option value="">全部</option>
+                <option value="3">日报</option>
+                <option value="2">周报</option>
+                <option value="1">月报</option>
+                <option value="4">临时项目</option>
+            </select></div>
+            <div class="ck_part ck_fr">
+                <a class="ck_btn ck_btn_sure" ng-click="searchList('reset')">查询</a>
+            </div>
+            <div class="ck_part ck_fr ck_pa" style="right:0;top:90%">
+                <a href="../createPage/projectCreatePage.html" class="ck_btn ck_bg_rosiness ck_font_white">新建项目</a>
+            </div>
+        </div>
+    </section>
+    <br/>
+    <section>
+        <ul class="ck_tab">
+            <li ng-click="chackStatus()" ng-class="{true:'active'}[searchParamter.status=='']">全部</li>
+            <li ng-click="chackStatus('3')" ng-class="{true:'active'}[searchParamter.status=='3']">进行中</li>
+            <li ng-click="chackStatus('5')" ng-class="{true:'active'}[searchParamter.status=='5']">已完成</li>
+            <li ng-click="chackStatus('2')" ng-class="{true:'active'}[searchParamter.status=='2']">未启动</li>
+            <li ng-click="chackStatus('9')" ng-class="{true:'active'}[searchParamter.status=='9']">出错</li>
+            <li ng-click="chackStatus('0')" ng-class="{true:'active'}[searchParamter.status=='0']">待配置</li>
+            <li ng-click="chackStatus('1')" ng-class="{true:'active'}[searchParamter.status=='1']">配置中</li>
+        </ul>
+    </section>
+    <section class="table-responsive">
+        <div class="dataListBox">
+            <table class="ck_table ck_table_line">
+                <thead class="bg_gray">
+                <tr>
+                    <th><span class="ck_pr"> 编号
+                    <ul class="order">
+                        <li ng-class="{true:'active'}[searchParamter.sortStatus=='id asc']">
+                            <a ng-click="selectOrder('id asc')">A</a></li>
+                       <li ng-class="{true:'active'}[searchParamter.sortStatus=='id desc']">
+                           <a ng-click="selectOrder('id desc')">D</a></li>
+                    </ul>
+                </span>
+                    </th>
+                    <th>项目名称</th>
+                    <th>描述</th>
+                    <th><span class="ck_pr"> 开始日期
+                    <ul class="order">
+                        <li ng-class="{true:'active'}[searchParamter.sortStatus=='start_time asc']">
+                            <a ng-click="selectOrder('start_time asc')">A</a></li>
+                       <li ng-class="{true:'active'}[searchParamter.sortStatus=='start_time desc']">
+                           <a ng-click="selectOrder('start_time desc')">D</a></li>
+                    </ul>
+                </span></th>
+                    <th><span class="ck_pr"> 截止日期
+                    <ul class="order">
+                        <li ng-class="{true:'active'}[searchParamter.sortStatus=='end_time asc']">
+                            <a ng-click="selectOrder('end_time asc')">A</a></li>
+                       <li ng-class="{true:'active'}[searchParamter.sortStatus=='end_time desc']">
+                           <a ng-click="selectOrder('end_time desc')">D</a></li>
+                    </ul>
+                </span>
+                    </th>
+                    <th>项目经理</th>
+                    <th>客户</th>
+                    <th>类型</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </thead>
+                <tbody class="ck_bg_white">
+                <tr ng-repeat="item in dataList">
+                    <td>{{item.id}}</td>
+                    <td><a class="ck_font_blue" style="text-decoration: underline"
+                           href="/project/projectHomePage.html?projectId={{item.id}}">{{item.name}}</a></td>
+                    <td><a onmouseenter="showAlt(this)" onmouseleave="hideAlt()"
+                           message="{{item.describes}}">{{item.describes.length<11?item.describes:item.describes.substr(0,10)}}</a>
+                    </td>
+                    <td>{{item.startTime}}</td>
+                    <td>{{item.endTime}}</td>
+                    <td>{{item.manager}}</td>
+                    <td>{{item.customer}}</td>
+                    <td>{{item.type}}</td>
+                    <td><a class="ck_font_blue" style="text-decoration: underline"
+                           href="/project/projectHomePage.html?projectId={{item.id}}">{{statusList[item.status]}}</a>
+                    </td>
+                    <td>
+                        <a ng-click="startProject(item.id)" class="ck_font_rosiness"
+                           ng-if="item.status==2||item.status==4||item.status==5||item.status==9">
+                        &nbsp;启动&nbsp;</a>
+                        <a ng-click="stopProject(item.id)" class="ck_font_rosiness" ng-if="item.status==3">&nbsp;停止&nbsp;</a>
+                        <a ng-click="deleteProject(item.id)" class="ck_font_rosiness" ng-if="item.status==0">
+                            &nbsp;删除&nbsp;</a>
+                        <a class="ck_font_rosiness" href="/project/projectHomePage.html?projectId={{item.id}}">&nbsp;查看&nbsp;</a>
+                        <a class="ck_btn btn-success"   ng-if="item.visStatus==2" href="/visualization/toVisualizationList.html?projectId={{item.id}}">&nbsp;可视化&nbsp;</a>
+                        <a class="ck_btn btn-warning"   ng-if="item.visStatus==1" href="/visualization/toVisualizationList.html?projectId={{item.id}}">&nbsp;可视化&nbsp;</a>
+
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div id="myAlt" class="ck_pa ck_bg_gunjyo ck_dn"
+                 style="max-width:300px;color:#FFFFFF;left:40%;top:50%;padding: 0.5em 1em;font-size:14px;border-radius:6px">
+            </div>
+        </div>
+        <div class="toolbar ck_bg_white" ng-if="totalPage>1">
+            <ul class="ck_pagination">
+                <li><a ng-click="searchList('first')"
+                       ng-class="{true:'disable'}[searchParamter.page=='1']">《</a>
+                </li>
+                <li><a ng-click="searchList('pre')"
+                       ng-class="{true:'disable'}[searchParamter.page=='1']">上一步</a>
+                </li>
+                <li><span>当前页:{{searchParamter.page}}，共{{totalPage}}页</span></li>
+                <li><a ng-click="searchList('next')"
+                       ng-class="{true:'disable'}[searchParamter.page==totalPage]">下一步</a></li>
+                <li><a ng-click="searchList('last')"
+                       ng-class="{true:'disable'}[searchParamter.page==totalPage]">》</a></li>
+            </ul>
+        </div>
+    </section>
+</div>
+<script src="../../../js/lib/require.js"></script>
+<script src="../../../js/config.js"></script>
+<script src="../../../js/view/projectManager/listPage/projectListPage.js"></script>
+</body>
+</html>

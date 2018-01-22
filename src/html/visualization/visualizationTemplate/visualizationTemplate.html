@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据项目管理</title>
+    <link rel="stylesheet" href="../../../css/common/common.css">
+    <link rel="stylesheet" href="../../../css/public/api/main.css">
+    <link rel="stylesheet" href="../../../css/public/index.css">
+    <style>
+        .item_box {
+            display: inline-block;
+            width: 160px;
+            height: 200px;
+            border: 1px solid #ffffff;
+            margin: 1em
+        }
+
+        .item_box_hover {
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, .5);
+            text-align: center;
+            box-shadow: 0 0 15px #000000;
+            top: 0;
+            left: 0;
+            display: none;
+            z-index: 99;
+        }
+
+        .item_box_img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .item_box:hover > .item_box_hover {
+            display: inline-block;
+        }
+
+        .item_box_btn {
+            display: inline-block;
+            margin-top: 50%;
+            padding: .5em .7em;
+            color: #fff;
+            border: 1px solid #ffffff;
+        }
+    </style>
+</head>
+<body class="ck_bg_deepblack" ng-controller="controller">
+<input id="http" type="hidden" value="../../../">
+<input id="mapJson" type="hidden" value='{"projectId":1,"url":"123"}'>
+<div class="ck_topbar ck_bg_kon">
+    <div class="ck_title_font ck_title ck_font_white">数据项目管理系统</div>
+    <nav class="ck_nav_topList ck_fr">
+        <ul>
+            <li class="ck_pr"><a ck-controlsdefaultclick="avater" class="ck_btn"><img class="ck_avatar"
+                                                                                      src="../../../images/avater/ee.jpg">
+            </a>
+                <div ck-defaultclick="avater" class="ck_popup_auto ck_bg_sky-blue ck_popup_bright ck_dn">
+                    <a class="ck_font_white" href="#">logout</a>
+                </div>
+            </li>
+        </ul>
+    </nav>
+    <span ck-controlsnav="menu" class="ck_nav_menu_btn"></span>
+    <nav ck-nav="menu" id="testMenu" class="ck_nav_menu ck_font_white">
+        <ul class="ck_vertical_menu">
+            <li ck-controlsdefaultclick="projectManager">项目管理 <span class="downIcon"> > </span></li>
+            <ul class="ck_dn ck_bg_blue" ck-defaultclick="projectManager">
+                <li><a href="../listPage/projectListPage.html">项目列表</a></li>
+                <li><a href="../createPage/projectCreatePage.html">新建项目</a></li>
+            </ul>
+        </ul>
+    </nav>
+</div>
+<div class="ck_content ck_leftbar_250px ck_bg_gray">
+    <section>
+        <h2 class="ck_font_blue">
+            请您选择一个模板! <a class="ck_font_sky-blue ck_fr" ng-click="goBack()">>>返回可视化列表</a>
+        </h2>
+    </section>
+    <br/>
+    <section class="table-responsive">
+        <ul class="ck_tab">
+            <li class="active">单页模板</li>
+        </ul>
+
+        <div class="item_box ck_pr ck_bg_white"
+             ng-repeat="item in dataList">
+            <img class="item_box_img" src="{{item.url}}"/>
+            <div class="item_box_hover ck_pa">
+                <a class="item_box_btn" ng-click="showCreateBox(item.id)">USE</a>
+            </div>
+        </div>
+        <div id="myAlt" class="ck_pa ck_bg_gunjyo ck_dn"
+             style="max-width:300px;color:#FFFFFF;left:40%;top:50%;padding: 0.5em 1em;font-size:14px;border-radius:6px">
+        </div>
+        <div class="alertBox" ng-if="createBoxIsShow">
+            <div class="ck_bg_sky-blue ck_font_black tal" style="padding: 0.3em 0">报告名称</div>
+            <div>
+                <br/><br/>
+                请为你的模板创建一个名称!
+                <br/><br/>
+                <input style="width:80%;" ng-model="createParamter.name"/>
+            </div>
+            <br/><br/>
+            <div>
+                <a class="ck_btn ck_btn_sure" ng-click="doCreate()">确定</a>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <a class="ck_btn ck_btn_cancel" ng-click="doCancel()">取消</a>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="../../../js/lib/require.js"></script>
+<script src="../../../js/config.js"></script>
+<script src="../../../js/view/visualization/visualizationTemplate/visualizationTemplate.js"></script>
+</body>
+</html>

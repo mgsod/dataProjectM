@@ -1,0 +1,58 @@
+<div class="col_part ck_bg_white">
+    <section>
+        <h2>数据导入</h2>
+    </section>
+    <br/>
+    <section class="col_part">
+        数据源&nbsp;：<select ng-model="uploadParamter.datasourceId" ng-change="getTypeListChildren()">
+        <option ng-repeat="item in typeList" value="{{item.datasourceId}}">{{item.datasourceName}}</option>
+    </select><br/><br/>
+        数据类型：<select ng-model="uploadParamter.typeId" ng-change="setTable()">
+        <option ng-repeat="item in typeChildrenList" value="{{item.typeId}}">{{item.typeName}}</option>
+    </select><!--<span class="ck_font_black dib" style="padding: .5em .8em" ng-repeat="item in typeList"><input name="type"
+                                                                                                            ng-click="uploadParamter.typeId=item.id;uploadParamter.typeName=item.dataSourceTypeName;doUploadFile()"
+                                                                                                            ng-checked="uploadParamter.typeId==item.id"
+                                                                                                            type="radio"/>{{item.dataSourceTypeName}}</span>-->
+    </section>
+    <br/>
+    <section class="col_part">
+        <input style="width:82px" onchange="chooseFile(this)" accept=".xlsx,.xls" type="file"/>&nbsp;&nbsp;&nbsp;
+        <span class="ck_font_blue">{{fileName||uploadParamter.url}}</span>&nbsp;&nbsp;&nbsp;
+        <a ng-if="uploadParamter.url==''&&fileName!=''" ng-click="doUploadFile()" class="ck_btn ck_btn_sure">\/</a>
+        <i class="fa fa-spinner fa-spin" style="font-size: 25px; margin-left: 21px;display: none" id="loading"></i>
+    </section>
+    <br/>
+    <section class="col_part" ng-if="uploadParamter.origainField.length!=0">
+        <ul class="ck_tab">
+            <li class="active">字段选择</li>
+        </ul>
+        <table class="ck_table">
+            <thead>
+            <tr>
+                <th>原字段</th>
+                <th>现字段</th>
+                <th>字段诠释</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="item in hang">
+                <td>{{uploadParamter.origainField[$index].value}}</td>
+                <td><select ng-change="updateKV()" class="pub_select"
+                            ng-model="uploadParamter.origainField[$index].key">
+                    <option ng-if="uploadParamter.origainField[$index].key!=''"
+                            value="{{uploadParamter.origainField[$index].key}}">
+                        {{uploadParamter.origainField[$index].key}}
+                    </option>
+                    <option ng-repeat="j in waitField">{{j}}</option>
+                    <option value="">空</option>
+                </select></td>
+                <td>{{fieldKV[uploadParamter.origainField[$index].key]}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+    <section class="tar">
+        <a class="ck_btn ck_btn_sure" ng-click="doUpload()">导入</a>
+        <a class="ck_btn ck_btn_cancel" ng-click="cancel()">取消</a>
+    </section>
+</div>

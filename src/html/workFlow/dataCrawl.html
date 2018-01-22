@@ -1,0 +1,199 @@
+<div class="col_part ck_bg_white" style="overflow: auto">
+    <section>
+        <h2>数据抓取</h2>
+    </section>
+    <br/>
+    <section class="col_part" id="col_part">
+        <div>
+            任务名称：<input type="text" ng-model="updateItem.taskName" placeholder="请输入任务名"/><span class="ck_font_rosiness">{{taskNameError}}</span><br/><br/>
+            抓取方式：<select ng-model="updateItem.crawlWay" ng-change="selectCrawlWay()">
+            <option ng-repeat=" item in crawlWayList" value="{{item.key}}">{{item.value}}</option>
+        </select><br><br>
+            <div ng-if="updateItem.crawlWay == 'data'">
+                抓取类型：<select ng-model="updateItem.crawlType" ng-change="getDateSourceTypeList(updateItem.crawlType)">
+                <option ng-repeat="item in crawlTypeList" value="{{item.key}}">{{item.value}}</option>
+            </select><br><br>
+                数据源：<select ng-model="updateItem.datasourceId" ng-disabled="action=='1'"
+                            ng-change="getDataSourceType()">
+                <option ng-repeat="item in dataSourceTypeList" value="{{item.datasourceId}}">{{item.datasourceName}}
+                </option>
+            </select><br/><br/>
+                数据类型：<select ng-repeat="item in dataSourceTypeList" ng-disabled="action=='1'"
+                             ng-if="item.datasourceId==updateItem.datasourceId"
+                             ng-model="updateItem.datasourceTypeId" ng-change="getElementList()">
+                <option ng-repeat="z in item.datasourceTypes" value="{{z.typeId}}">{{z.typeName}}</option>
+            </select>
+            </div>
+            <div ng-if="updateItem.crawlWay == 'process'">
+                抓取流程: <select ng-model="updateItem.workFlowTemplateId" ng-change="selectProcess()">
+                <option ng-repeat="item in processList" value="{{item.id}}" >{{item.name}}</option>
+            </select>
+            </div>
+        </div>
+        <br/>
+        <div style="border-bottom:1px dotted black">
+        </div>
+        <div>
+            <div ng-repeat="item in updateItem.inputParamArray">
+                <div ng-if="item.styleCode=='input'"><br/>{{item.paramCnName}}：<input type="text"
+                                                                                      ng-model="item.paramValue"
+                                                                                      placeholder="{{item.prompt}}"/><br/>
+                </div>
+                <div ng-if="item.styleCode=='input-file'"><br/>{{item.paramCnName}}：
+                    <input type="text"  ng-model="item.paramValue.value" placeholder="{{item.prompt}}"/>
+                    <input onchange="doUploadFile(this)" ngmodel="{{$index}}" type="file" style="width:82px" address="{{item.paramValue.file}}"/>
+                    &nbsp; &nbsp; {{item.paramValue.file}}&nbsp;&nbsp;<a href="/dataCrawl/getTemplateFile.html"
+                                                                         target="_blank">模板下载</a>
+                    <br/>
+                </div>
+                <div ng-if="item.styleCode=='checkbox'"><br/>{{item.paramCnName}}：<input type="checkbox"
+                                                                                         ng-checked="item.paramValue"
+                                                                                         ng-click="doCheck($event,item)"
+                                                                                         placeholder="item.prompt"/>
+                    <br/>
+                </div>
+                <div ng-if="item.styleCode=='datetime'">
+                    <br/>
+                    {{item.paramCnName}}： <input style="width:82px" class="datetime"
+                                                 ng-model="item.paramValue"/>
+                    <br/>
+                </div>
+                <div ng-if="item.styleCode=='file'">
+                    <br/>
+                    {{item.paramCnName}}： <input type="file" style="width:82px" ngmodel="{{$index}}"
+                                                 onchange="doUploadFile(this)"
+                                                 address="{{item.paramValue}}"/>
+                    &nbsp; &nbsp; {{item.paramValue}}&nbsp;&nbsp;<a href="/dataCrawl/getTemplateFile.html"
+                                                                    target="_blank">模板下载</a>
+                    <br/>
+                </div>
+                <div ng-if="item.styleCode=='doubleTime'">
+                    <br/>
+                    {{item.paramCnName}}： <input style="width:120px" class="start"
+                                                 ng-model="item.paramValue.start"/>---
+                    <input style="width:120px" class="end"
+                           ng-model="item.paramValue.end"/>
+                    <br/>
+                    <br/>
+                    抓取规则:
+                    <select ng-model="item.paramValue.splitValue">
+                        <option ng-repeat="(key,value) in item.controlProp" value="{{key}}">{{value}}</option>
+                    </select>
+                    <br/>
+                    <br/>
+
+                    步长: <input type="number" min="1" id="step" ng-model="item.paramValue.step">
+                    <span class="text-muted">步长只能为大于0的正整数</span>
+                    <div class="hide text-danger timeError">开始日期不能大于结束日期</div>
+                    <div class="hide text-danger selectStart">请填写开始时间</div>
+                    <br/>
+                </div>
+                <div ng-if="item.styleCode=='page'">
+                    <br>
+                    {{item.paramCnName}} :
+                    <input style="width:82px" type="number" placeholder="起始页"
+                           ng-model="item.paramValue.start"/>---
+                    <input style="width:82px" type="number" placeholder="结束页"
+                           ng-model="item.paramValue.end"/>
+
+                </div>
+            </div>
+
+        </div>
+        <br/>
+        <div style="border-bottom:1px dotted black">
+        </div>
+        <br/>
+        <div>
+            抓取频次：<select ng-model="updateItem.crawlFreqType">
+            <option value="1">单次</option>
+            <option value="2">循环</option>
+        </select>
+            <div ng-if="updateItem.crawlFreqType==2">
+                <div>
+                    <select ng-model="second" ng-change="changeType('second',second)">
+                        <option value="1">每秒</option>
+                        <option value="2">指定秒</option>
+                    </select>
+                    <br/>
+                    <div ng-if="second==2" class="ck_part">
+                        <a class="ck_btn ck_btn_cancel" style="padding: .5em;margin: .2em;"
+                           ng-click="checkNumbers(1,'secondValue',ss)"
+                           ng-class="{true:'ck_bg_rosiness'}[isCheck(secondValue,ss)]" ng-repeat="ss in secondList">
+                            {{ss}}
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <select ng-model="minutes" ng-change="changeType('minutes',minutes)">
+                        <option value="1">每分</option>
+                        <option value="2">指定分</option>
+                    </select><br/>
+                    <div ng-if="minutes==2" class="ck_part">
+                        <a class="ck_btn ck_btn_cancel" style="padding: .5em;margin: .2em;"
+                           ng-click="checkNumbers(1,'minutesValue',ss)"
+                           ng-class="{true:'ck_bg_rosiness'}[isCheck(minutesValue,ss)]" ng-repeat="ss in minutesList">
+                            {{ss}}
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <select ng-model="hour" ng-change="changeType('hour',hour)">
+                        <option value="1">每小时</option>
+                        <option value="2">指定小时</option>
+                    </select><br/>
+                    <div ng-if="hour==2" class="ck_part">
+                        <a class="ck_btn ck_btn_cancel" style="padding: .5em;margin: .2em;"
+                           ng-click="checkNumbers(1,'hourValue',ss)"
+                           ng-class="{true:'ck_bg_rosiness'}[isCheck(hourValue,ss)]" ng-repeat="ss in hourList">
+                            {{ss}}
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <select ng-model="day" ng-change="changeType('day',day)" ng-disabled="weekValue!='*'">
+                        <option value="1">每日</option>
+                        <option value="2">指定日</option>
+                    </select><br/>
+                    <div ng-if="day==2" class="ck_part">
+                        <a class="ck_btn ck_btn_cancel" style="padding: .5em;margin: .2em;"
+                           ng-click="checkNumbers(1,'dayValue',ss)"
+                           ng-class="{true:'ck_bg_rosiness'}[isCheck(dayValue,ss)]" ng-repeat="ss in dayList">
+                            {{ss}}
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <select ng-model="month" ng-change="changeType('month',month)">
+                        <option value="1">每月</option>
+                        <option value="2">指定月</option>
+                    </select><br/>
+                    <div ng-if="month==2" class="ck_part">
+                        <a class="ck_btn ck_btn_cancel" style="padding: .5em;margin: .2em;"
+                           ng-click="checkNumbers(1,'monthValue',ss)"
+                           ng-class="{true:'ck_bg_rosiness'}[isCheck(monthValue,ss)]" ng-repeat="ss in monthList">
+                            {{ss}}
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <select ng-model="week" ng-change="changeType('week',week)" ng-disabled="dayValue!='*'">
+                        <option value="1">每周</option>
+                        <option value="2">指定星期</option>
+                    </select><br/>
+                    <div ng-if="week==2" class="ck_part">
+                        <a class="ck_btn ck_btn_cancel" style="padding: .5em;margin: .2em;"
+                           ng-click="checkNumbers(1,'weekValue',ss)"
+                           ng-class="{true:'ck_bg_rosiness'}[isCheck(weekValue,ss)]" ng-repeat="ss in weekList">
+                            {{ss}}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="tar padding_2px">
+        <a class="ck_btn ck_btn_sure" ng-click="doUpload()">确定</a>
+        <a class="ck_btn ck_btn_cancel" ng-click="cancel()">取消</a>
+    </section>
+</div>
