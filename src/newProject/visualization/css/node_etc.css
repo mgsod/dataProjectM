@@ -20,7 +20,7 @@ path.strokedrect{
     stroke:#27c24c !important;
 }
 .bgContainer {
-    background: url(/newProject/img/bg.png);
+
 }
 .canvas{
     padding:0;
@@ -128,7 +128,7 @@ ul>li{
     /*box-shadow: 1px 0 1px #888888;*/
 
 }
-.switch{
+.switch.left,.switch.right{
     position: absolute;
     height: 100%;
     top: 0;
@@ -326,30 +326,30 @@ ul>li{
     overflow-y: scroll;
 }
 /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
-.frequency::-webkit-scrollbar
-{
+.frequency::-webkit-scrollbar{
     width: 8px;
     height: 8px;
     background-color: #F5F5F5;
 }
 
 /*定义滚动条轨道 内阴影+圆角*/
-.frequency::-webkit-scrollbar-track
-{
+.frequency::-webkit-scrollbar-track{
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
     border-radius: 10px;
     background-color: #F5F5F5;
 }
 
 /*定义滑块 内阴影+圆角*/
-.frequency::-webkit-scrollbar-thumb
-{
+.frequency::-webkit-scrollbar-thumb{
     border-radius: 10px;
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
     background-color: #555;
 }
 .setting .el-input{
     width: 220px;
+}
+.setting .el-input--mini{
+    width: 100%;
 }
 .b-b.b-d{
     border-style: dashed;
@@ -402,5 +402,96 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button {
 }
 .el-date-editor .el-range-separator {
     padding: 0;
+}
+.el-checkbox-group {
+    font-size: 14px;
+}
+.wordLibraryList .el-form-item__content{
+    padding-left: 20px;
+}
+.el-button.m-l-lg{
+    margin-left: 30px;
+}
+.pro_lib{
+    max-height: 200px;
+    overflow-y: scroll;
+}
+#tree{
+    width: 150px;
+    max-height: 220px;
+    position: absolute;
+    left: 205px;
+    z-index: 999;
+    overflow-y: scroll;
+}
 
+/*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+#tree::-webkit-scrollbar{
+    width: 8px;
+    height: 8px;
+    background-color: #F5F5F5;
+}
+
+/*定义滚动条轨道 内阴影+圆角*/
+#tree::-webkit-scrollbar-track{
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    border-radius: 10px;
+    background-color: #F5F5F5;
+}
+
+/*定义滑块 内阴影+圆角*/
+#tree::-webkit-scrollbar-thumb{
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    background-color: #555;
+}
+ul.line{
+    height: auto;
+}
+.theme .label{
+    display: inline-block;
+}
+label:empty {
+    display: none !important;
+}
+.PushFrequency .el-input{
+    width: 100px;
+}
+.el-pagination__editor{
+    width: 50px !important;
+}
+.el-pagination__jump{
+    margin-left: 5px;
+}
+.el-table thead tr{
+    color: #58666e;
+    background-color: #edf1f2;
+}
+.setting .el-table__body-wrapper {
+    height: 700px;
+    width: 380px;
+    overflow: scroll;
+}
+.setting .fullScreen .el-table__body-wrapper{
+    width: 100%;
+}
+/*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+.el-table__body-wrapper::-webkit-scrollbar{
+    width: 8px;
+    height: 8px;
+    background-color: #F5F5F5;
+}
+
+/*定义滚动条轨道 内阴影+圆角*/
+.el-table__body-wrapper::-webkit-scrollbar-track{
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    border-radius: 10px;
+    background-color: #F5F5F5;
+}
+
+/*定义滑块 内阴影+圆角*/
+.el-table__body-wrapper::-webkit-scrollbar-thumb{
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    background-color: #555;
 }

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/css/app.min.css">
     <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/css/font-awesome.min.css">
     <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/css/element.css">
+    <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/css/zTreeStyle.css">
 
 </head>
 <body style="display: none;">
@@ -66,7 +67,7 @@
                     <p class="font-bold" id="nodeTip">【节点说明】</p>
                     <el-row v-for="(item,i) in nodeTip" :key="i" class="m-b-md">
                         <el-col :span="2" class="text-center">
-                            <img :src="item.img" alt=""/>
+                            <img :src="'<%= htmlWebpackPlugin.options.freemarkerPath %>'+item.img"  alt=""/>
                             <div>{{item.name}}</div>
                         </el-col>
                         <el-col :span="20">{{item.tip}}</el-col>
@@ -75,7 +76,7 @@
                     <p class="font-bold" id="nodeStatus">【节点状态】</p>
                     <el-row v-for="(item,i) in nodeStatus" :key="i" class="m-b-md">
                         <el-col :span="2" class="text-center">
-                            <img :src="item.img" alt="">
+                            <img :src="'<%= htmlWebpackPlugin.options.freemarkerPath %>'+item.img" alt="">
                         </el-col>
                         <el-col :span="5" class="m-t-md">-----{{item.status}}
                         </el-col>
@@ -84,7 +85,7 @@
                     <p class="font-bold" id="nodeIcon">【图标说明】</p>
                     <el-row v-for="(item,i) in nodeIcon" :key="i" class="m-b-md">
                         <el-col :span="2" class="text-center">
-                            <img :src="item.img" alt="">
+                            <img :src="'<%= htmlWebpackPlugin.options.freemarkerPath %>'+item.img" alt="">
                         </el-col>
                         <el-col :span="5" class="m-t-md">-----{{item.status}}
                         </el-col>
@@ -118,14 +119,15 @@
                     &nbsp;
                 </div>
                 <div class="col-sm-3 text-left text-warning-dker">
-                    VGC兔兔分析项目
+                    {{editForm.projectName}}
                     <a @click="editProject">
                         <i class="fa fa-edit text-dark m-l"></i>
                     </a>
                     <el-dialog title="编辑项目详情" :visible.sync="editProjectDialog">
                         <el-row>
                             <el-col :span="15">
-                                <el-form :model="editForm" :rules="rules" ref="editForm" label-width="200px" class="demo-ruleForm">
+                                <el-form :model="editForm" :rules="rules" ref="editForm" label-width="200px"
+                                         class="demo-ruleForm">
                                     <el-form-item label="项目名称：" prop="projectName">
                                         <el-input v-model="editForm.projectName"></el-input>
                                     </el-form-item>
@@ -134,7 +136,7 @@
                                         <el-input type="textarea" v-model="editForm.projectDescribe"></el-input>
                                     </el-form-item>
 
-                                    <el-form-item label="项目类型：" >
+                                    <el-form-item label="项目类型：">
                                         <el-radio-group v-model="editForm.typeId">
                                             <el-radio :label="item.key" :key="item.key" v-for="item in typeList">
                                                 {{item.value}}
@@ -183,7 +185,7 @@
                         <el-row class="m-t">
                             <el-col :span="5" :offset="8">
                                 <el-button type="primary" @click="saveProjectBaseInfo('editForm')">确定</el-button>
-                                <el-button  @click="editProjectDialog = false;">取消</el-button>
+                                <el-button @click="editProjectDialog = false;">取消</el-button>
                             </el-col>
                         </el-row>
                     </el-dialog>
@@ -194,7 +196,11 @@
                         <i class="fa fa-arrows-v"></i>
                         连线
                     </button>
-                    <button class="btn btn-default" id="save" @click="saveProject">
+                    <button class="btn btn-default" id="save" @click="saveProject"
+                            v-loading.fullscreen.lock="saveLoading"
+                            element-loading-text="保存中"
+                            element-loading-spinner="el-icon-loading"
+                            >
                         <i class="fa fa-save"></i>
                         保存
                     </button>
@@ -202,7 +208,7 @@
                         <i class="fa fa-mail-reply"></i>
                         返回
                     </button>
-                    <button class="btn btn-default">
+                    <button class="btn btn-default" @click="saveAs">
                         <i class="fa fa-share-square-o"></i>
                         另存
                     </button>
@@ -210,7 +216,7 @@
             </div>
         </div>
 
-        <div class="bgContainer b-b  b-r" id="container" style="height: 1000px;width: 1800px">
+        <div class="bgContainer b-b  b-r" id="container" style="height: 1000px;width: 1800px; background: url(<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/img/bg.png);">
             <svg id="canvas" style="height: 100%;width: 100%">
 
             </svg>
@@ -226,7 +232,7 @@
             <span class="setting-tab" :class="{active:active_index == 2}" @click="tabs(2)">查看</span>
             <span class="setting-tab" :class="{active:active_index == 3}" @click="tabs(3)"><i
                     class="fa fa-exclamation-circle"></i></span>
-            <button class="btn btn-sm btn-danger m-l-md"><i class="fa  fa-trash-o"></i></button>
+            <button class="btn btn-sm btn-danger m-l-md" @click="delNode"><i class="fa  fa-trash-o"></i></button>
         </div>
 
         <div class="panel-body ">
@@ -242,14 +248,19 @@
                                 <el-form-item :label="item.paramCnName+'：'" :placeholder="item.paramCnName"
                                               :prop="'paramArray.' + index + '.value'"
                                               :rules="{ required: true, message: item.paramCnName+'不能为空', trigger: 'blur'}"
-                                              >
-                                    <el-input v-model="item.value"    class="input"></el-input>
+                                >
+                                    <el-input v-model="item.value" class="input"></el-input>
                                 </el-form-item>
                             </template>
 
                             <!--select下拉框-->
                             <template v-if="item.styleCode == 'select'">
-                                <el-form-item :label="item.paramCnName+'：'" v-if="item.inputParamId != 12"
+                                <el-form-item :label="item.paramCnName+'：'"
+                                              v-if="item.paramEnName != 'crawlFreq' && item.paramEnName != 'wordSegmentationObject'
+                                               && item.paramEnName != 'themeAnalysisSettingObject'
+                                               && item.paramEnName != 'topicAnalysisDefinitionObject'
+                                               && item.paramEnName != 'startFreqTypeName'
+                                                "
                                               :prop="'paramArray.' + index + '.value'"
                                               :rules="{ required: true, message: '请选择'+item.paramCnName, trigger: 'change',pattern : /./}"
                                 >
@@ -257,172 +268,243 @@
                                                @focus="focusSelect(item)" @change="changeSelect(item)">
                                         <!--config里有数据时才渲染option 否则item.config.list 报错 can not set list of null -->
                                         <template v-if="item.config">
-                                            <el-option  v-for="(i,_index) in item.config.list" :key="_index"
-                                                        :label="i[item.filedMapping.value]" :value="i[item.filedMapping.id]">
+                                            <el-option v-for="(i,_index) in item.config.list" :key="_index"
+                                                       :label="i[item.filedMapping.value]"
+                                                       :value="i[item.filedMapping.id].toString()">
                                                 {{i[item.filedMapping.value]}}
                                             </el-option>
                                         </template>
                                     </el-select>
+                                    <span class="text-danger" v-if="item.paramEnName == 'wordSegmentationObject' && !item.config">请连接上一个节点</span>
                                 </el-form-item>
 
                                 <!--抓取节点动态组件 [节点为抓取 && 控件为数据源类型 && config不为空(为啥判断看上一条判断config的原因) && 为首节点]-->
-                                <template v-if="type == 'dataCrawl' && item.paramEnName == 'datasouceTypeId' && item.config && !setting[type].preId">
-                                       <!--遍历config下list-->
-                                        <template v-if="item.config" v-for="(props,propsId) in item.config.list">
-                                            <!--如果当前选中的数据源类型 == 控件的数据源类型id -->
-                                         <template v-if="props.datasourceTypeId == item.value">
-                                             <div class="b-b m-b b-d"></div>
-                                                <template v-for="(prop,propIndex) in props.inpuutParam">
-                                                    <!--input控件-->
-                                                    <template v-if="prop.styleCode == 'input'">
-                                                        <el-form-item :label="prop.paramCnName+'：'" :placeholder="item.prompt"
-                                                                      :prop="'paramArray.' + index + '.config.list.'+ propsId +'.inpuutParam.'+propIndex+'.paramValue'"
-                                                                      :rules="{ required: true, message: item.paramCnName+'不能为空', trigger: 'blur',type:'string'}"
-                                                        >
-                                                            <!--<span :prop="'paramArray.' + index + '.config.list'+ propsId +'.inpuutParam'+propIndex+'.paramValue'">sdf</span>-->
-                                                            <el-input v-model="prop.paramValue"></el-input>
-                                                        </el-form-item>
-                                                    </template>
-
-                                                    <!--page控件-->
-                                                    <template v-if="prop.styleCode == 'page'">
-                                                        <el-form-item :label="prop.paramCnName+'：'" :placeholder="item.prompt"
-
-                                                        >
-                                                            <span class="hidden">{{prop.paramValue = {} }}</span> <!--prop.paramValue是undefined 不能为其设置start end属性 这里先初始化一下-->
-                                                            <el-input v-model="prop.paramValue.start" style="width: 100px"></el-input>
-                                                             ---
-                                                            <el-input v-model="prop.paramValue.end" style="width: 100px"></el-input>
-                                                        </el-form-item>
-                                                    </template>
-
-                                                    <!--input-file控件-->
-                                                    <template v-if="prop.styleCode == 'input-file'">
-                                                        <el-form-item :label="prop.paramCnName+'：'" :placeholder="item.prompt" >
-                                                            <el-input v-model="prop.value" class="m-b" id="input-file-value" @change="_dataCrawl_setProp_value(prop)"></el-input>
-                                                            <el-button size="small"  type="primary" @click="_dataCrawl_fileTrigger()">选取文件</el-button>
-                                                            <span>{{prop.fileName}}</span>
-                                                            <a href="/dataCrawl/getTemplateFile.html" target="_blank" class="text-info">模板下载</a>
-                                                            <input type="file" style="display: none" id="_dataCrawl_inputFile" @change="_dataCrawl_fileChange($event,prop)">
-                                                        </el-form-item>
-                                                    </template>
-
+                                <template
+                                        v-if="type == 'dataCrawl' && item.paramEnName == 'datasouceTypeId' && item.config && !setting[type].preId">
+                                    <!--遍历config下list-->
+                                    <template v-if="item.config" v-for="(props,propsId) in item.config.list">
+                                        <!--如果当前选中的数据源类型 == 控件的数据源类型id -->
+                                        <template v-if="props.datasourceTypeId == item.value">
+                                            <div class="b-b m-b b-d"></div>
+                                            <template v-for="(prop,propIndex) in props.inpuutParam">
+                                                <!--input控件-->
+                                                <template v-if="prop.styleCode == 'input'">
+                                                    <el-form-item :label="prop.paramCnName+'：'"
+                                                                  :placeholder="prop.prompt"
+                                                                  :prop="'paramArray.' + index + '.config.list.'+ propsId +'.inpuutParam.'+propIndex+'.paramValue'"
+                                                                  :rules="{ required: prop.isRequired == '0' ? false : true, message: prop.paramCnName+'不能为空', trigger: 'blur',type:'string'}"
+                                                    >
+                                                        <!--<span :prop="'paramArray.' + index + '.config.list'+ propsId +'.inpuutParam'+propIndex+'.paramValue'">sdf</span>-->
+                                                        <el-input v-model="prop.paramValue"></el-input>
+                                                    </el-form-item>
                                                 </template>
-                                             <div class="b-b m-b b-d"></div>
+
+                                                <!--page控件-->
+                                                <template v-if="prop.styleCode == 'page'">
+                                                    <el-form-item :label="prop.paramCnName+'：'"
+                                                                  :placeholder="prop.prompt"
+                                                                  :prop="'paramArray.' + index + '.config.list.'+ propsId +'.inpuutParam.'+propIndex+'.paramValue'"
+                                                                  :rules="{ required: prop.isRequired == '0' ? false : true, message: item.paramCnName+'不能为空且为数字', type:'object' ,trigger: 'blur'}"
+
+                                                    >
+
+                                                        <span class="hidden">{{prop.paramValue = prop.paramValue || {} }}</span>
+                                                        <!--prop.paramValue是undefined 不能为其设置start end属性 这里先初始化一下-->
+
+                                                        <el-input-number size="mini" style=" width: 100px;" :min="1"
+                                                                         v-model="prop.paramValue.start"></el-input-number>
+                                                        ---
+                                                        <el-input-number size="mini" style=" width: 100px;"
+                                                                         :min="parseInt(prop.paramValue.start)+1"
+                                                                         v-model.number="prop.paramValue.end"></el-input-number>
+                                                    </el-form-item>
+                                                </template>
+
+                                                <!--input-file控件-->
+                                                <template v-if="prop.styleCode == 'input-file'">
+                                                    <el-form-item :label="prop.paramCnName+'：'"
+                                                                  :placeholder="item.prompt"
+                                                    >
+                                                        <el-input v-model="prop.value" class="m-b" id="input-file-value"
+                                                                  @change="_dataCrawl_setProp_value(prop)"></el-input>
+                                                        <el-button size="small" type="primary"
+                                                                   @click="_dataCrawl_fileTrigger()">选取文件
+                                                        </el-button>
+                                                        <span>{{prop.fileName}}</span>
+                                                        <a href="/dataCrawl/getTemplateFile.html" target="_blank"
+                                                           class="text-info">模板下载</a>
+                                                        <input type="file" style="display: none"
+                                                               id="_dataCrawl_inputFile"
+                                                               @change="_dataCrawl_fileChange($event,prop)">
+                                                    </el-form-item>
+                                                </template>
+
+                                            </template>
+                                            <div class="b-b m-b b-d"></div>
                                         </template>
                                     </template>
                                 </template>
                             </template>
 
+                            <!--自定义下拉框 [分词节点]-->
+                            <template v-if="item.paramEnName == 'wordSegmentationObject' || item.paramEnName == 'topicAnalysisDefinitionObject'
+                                            || item.paramEnName == 'themeAnalysisSettingObject'">
+                                <el-form-item :label="item.paramCnName+'：'"
+                                              :prop="'paramArray.' + index + '.value'"
+                                              :rules="{ required: true, message: '请选择'+item.paramCnName, trigger: 'change',pattern : /./}"
+                                >
+                                    <el-select v-model="item.value" :placeholder="item.paramCnName" v-if="item.config">
+                                        <!--config里有数据时才渲染option 否则item.config.list 报错 can not set list of null -->
+                                        <template v-if="item.config">
+                                            <el-option v-for="(i,_index) in item.config.list" :key="_index"
+                                                       :label="i.fieldCnName"
+                                                       :value="i.fieldEnName">
+                                                {{i.fieldCnName}}
+                                            </el-option>
+                                        </template>
+                                    </el-select>
+                                    <span class="text-danger" v-if="!item.config">请连接上一个节点</span>
+                                </el-form-item>
+
+
+                            </template>
+
+
                             <!--抓取频次-->
-                            <template v-if="type == 'dataCrawl' && item.paramEnName =='datasouceTypeId' && item.config &&  item.config.frequency">
+                            <template v-if="(item.config &&  item.config.frequency)   && (item.paramEnName =='datasouceTypeId' || item.paramEnName == 'startFreqTypeName')">
                                 <!--!preId 就是说没有上级节点 它是抓取首节点-->
-                                <div class="frequency" v-if="!setting[type].preId">
-                                    <el-form-item label="抓取频次："  >
+
+                                <div  v-if="!setting[type].preId || setting[type].typeNo == 'topicAnalysisDefinition'">
+                                    <el-form-item label="抓取频次：">
                                         <el-select v-model="item.config.frequency.value">
-                                            <el-option v-for="(item,k) in item.config.frequency.frequencyList"  :key="k" :value="item.key" :label="item.value">{{item.value}}</el-option>
+                                            <el-option v-for="(item,k) in item.config.frequency.frequencyList" :key="k"
+                                                       :value="item.key" :label="item.value">{{item.value}}
+                                            </el-option>
                                         </el-select>
                                     </el-form-item>
 
                                     <!--Cron表达式组件创建  详情百度Cron-->
-                                    <template v-if="item.config && item.config.frequency.value == 2">
-                                        <el-tabs v-model="activeTabs" type="card" >
-                                            <el-tab-pane label="秒" name="s">
+                                    <div class="frequency">
+                                        <template v-if="item.config && item.config.frequency.value == 2">
+                                            <el-tabs v-model="activeTabs" type="card">
+                                                <el-tab-pane label="秒" name="s">
 
-                                                <span @click="_clearCron(item.config.frequency.__s)"><el-radio v-model="item.config.frequency.s" label="1" >每秒</el-radio></span>
-                                                <br>
-                                                <el-radio v-model="item.config.frequency.s" label="2">指定秒</el-radio>
+                                                <span @click="_clearCron(item.config.frequency.__s)"><el-radio
+                                                        v-model="item.config.frequency.s" label="1">每秒</el-radio></span>
+                                                    <br>
+                                                    <el-radio v-model="item.config.frequency.s" label="2">指定秒</el-radio>
 
 
-                                                <template v-if="item.config.frequency.s == 2">
-                                                    <div>
+                                                    <template v-if="item.config.frequency.s == 2">
+                                                        <div>
 
-                                                        <el-checkbox-group v-model="item.config.frequency.__s" >
-                                                            <el-checkbox v-for="(i,_i) in 60" :key="i" style="width:40px;"  :label="_i">{{_i}}</el-checkbox>
-                                                        </el-checkbox-group>
+                                                            <el-checkbox-group v-model="item.config.frequency.__s">
+                                                                <el-checkbox v-for="(i,_i) in 60" :key="i"
+                                                                             style="width:40px;" :label="_i">{{_i}}
+                                                                </el-checkbox>
+                                                            </el-checkbox-group>
 
-                                                    </div>
-                                                </template>
+                                                        </div>
+                                                    </template>
 
-                                            </el-tab-pane>
-                                            <el-tab-pane label="分" name="m">
+                                                </el-tab-pane>
+                                                <el-tab-pane label="分" name="m">
 
-                                                <span @click="_clearCron(item.config.frequency.__m)"><el-radio v-model="item.config.frequency.m" label="1">每分</el-radio></span>
-                                                <br>
-                                                <el-radio v-model="item.config.frequency.m" label="2">指定分</el-radio>
-                                                <template v-if="item.config.frequency.m == 2">
-                                                    <div>
-                                                        <el-checkbox-group v-model="item.config.frequency.__m">
-                                                            <el-checkbox v-for="(i,_i) in 60" :key="i" style="width:40px;"  :label="_i">{{_i}}</el-checkbox>
-                                                        </el-checkbox-group>
-                                                    </div>
-                                                </template>
+                                                <span @click="_clearCron(item.config.frequency.__m)"><el-radio
+                                                        v-model="item.config.frequency.m" label="1">每分</el-radio></span>
+                                                    <br>
+                                                    <el-radio v-model="item.config.frequency.m" label="2">指定分</el-radio>
+                                                    <template v-if="item.config.frequency.m == 2">
+                                                        <div>
+                                                            <el-checkbox-group v-model="item.config.frequency.__m">
+                                                                <el-checkbox v-for="(i,_i) in 60" :key="i"
+                                                                             style="width:40px;" :label="_i">{{_i}}
+                                                                </el-checkbox>
+                                                            </el-checkbox-group>
+                                                        </div>
+                                                    </template>
 
-                                            </el-tab-pane>
-                                            <el-tab-pane label="时" name="h">
+                                                </el-tab-pane>
+                                                <el-tab-pane label="时" name="h">
 
-                                                <span @click="_clearCron(item.config.frequency.__h)"><el-radio v-model="item.config.frequency.h" label="1">每小时</el-radio></span>
-                                                <br>
-                                                <el-radio v-model="item.config.frequency.h" label="2">指定小时</el-radio>
-                                                <template v-if="item.config.frequency.h == 2">
-                                                    <div>
-                                                        <el-checkbox-group v-model="item.config.frequency.__h">
-                                                            <el-checkbox v-for="(i,_i) in 24" :key="i" style="width:60px;"  :label="_i">{{_i}}</el-checkbox>
-                                                        </el-checkbox-group>
-                                                    </div>
-                                                </template>
+                                                <span @click="_clearCron(item.config.frequency.__h)"><el-radio
+                                                        v-model="item.config.frequency.h"
+                                                        label="1">每小时</el-radio></span>
+                                                    <br>
+                                                    <el-radio v-model="item.config.frequency.h" label="2">指定小时</el-radio>
+                                                    <template v-if="item.config.frequency.h == 2">
+                                                        <div>
+                                                            <el-checkbox-group v-model="item.config.frequency.__h">
+                                                                <el-checkbox v-for="(i,_i) in 24" :key="i"
+                                                                             style="width:60px;" :label="_i">{{_i}}
+                                                                </el-checkbox>
+                                                            </el-checkbox-group>
+                                                        </div>
+                                                    </template>
 
-                                            </el-tab-pane>
-                                            <el-tab-pane label="日" :disabled="item.config.frequency.w==2" name="d">
+                                                </el-tab-pane>
+                                                <el-tab-pane label="日" :disabled="item.config.frequency.w==2" name="d">
 
-                                                <span @click="_clearCron(item.config.frequency.__d)"><el-radio v-model="item.config.frequency.d" label="1">每日</el-radio></span>
-                                                <br>
-                                                <el-radio v-model="item.config.frequency.d" label="2">指定日</el-radio>
-                                                <template v-if="item.config.frequency.d == 2">
-                                                    <div>
-                                                        <el-checkbox-group v-model="item.config.frequency.__d">
-                                                            <el-checkbox v-for="(i,_i) in 31" :key="i" style="width:40px;"  :label="i">{{i}}</el-checkbox>
-                                                        </el-checkbox-group>
-                                                    </div>
-                                                </template>
+                                                <span @click="_clearCron(item.config.frequency.__d)"><el-radio
+                                                        v-model="item.config.frequency.d" label="1">每日</el-radio></span>
+                                                    <br>
+                                                    <el-radio v-model="item.config.frequency.d" label="2">指定日</el-radio>
+                                                    <template v-if="item.config.frequency.d == 2">
+                                                        <div>
+                                                            <el-checkbox-group v-model="item.config.frequency.__d">
+                                                                <el-checkbox v-for="(i,_i) in 31" :key="i"
+                                                                             style="width:40px;" :label="i">{{i}}
+                                                                </el-checkbox>
+                                                            </el-checkbox-group>
+                                                        </div>
+                                                    </template>
 
-                                            </el-tab-pane>
-                                            <el-tab-pane label="月" name="M">
+                                                </el-tab-pane>
+                                                <el-tab-pane label="月" name="M">
 
-                                                <span @click="_clearCron(item.config.frequency.__M)"> <el-radio v-model="item.config.frequency.M" label="1">每月</el-radio></span>
-                                                <br>
-                                                <el-radio v-model="item.config.frequency.M" label="2">指定月</el-radio>
-                                                <template v-if="item.config.frequency.M == 2">
-                                                    <div>
-                                                        <el-checkbox-group v-model="item.config.frequency.__M">
-                                                            <el-checkbox v-for="(i,_i) in 12" :key="i" style="width:40px;"  :label="i">{{i}}</el-checkbox>
-                                                        </el-checkbox-group>
-                                                    </div>
-                                                </template>
+                                                <span @click="_clearCron(item.config.frequency.__M)"> <el-radio
+                                                        v-model="item.config.frequency.M" label="1">每月</el-radio></span>
+                                                    <br>
+                                                    <el-radio v-model="item.config.frequency.M" label="2">指定月</el-radio>
+                                                    <template v-if="item.config.frequency.M == 2">
+                                                        <div>
+                                                            <el-checkbox-group v-model="item.config.frequency.__M">
+                                                                <el-checkbox v-for="(i,_i) in 12" :key="i"
+                                                                             style="width:40px;" :label="i">{{i}}
+                                                                </el-checkbox>
+                                                            </el-checkbox-group>
+                                                        </div>
+                                                    </template>
 
-                                            </el-tab-pane>
-                                            <el-tab-pane label="周" :disabled="item.config.frequency.d==2" name="w">
+                                                </el-tab-pane>
+                                                <el-tab-pane label="周" :disabled="item.config.frequency.d==2" name="w">
 
-                                                <span @click="_clearCron(item.config.frequency.__w)"><el-radio v-model="item.config.frequency.w" label="1">每周</el-radio></span>
-                                                <br>
-                                                <el-radio v-model="item.config.frequency.w" label="2">指定周</el-radio>
-                                                <template v-if="item.config.frequency.w == 2">
-                                                    <div>
-                                                        <el-checkbox-group v-model="item.config.frequency.__w">
-                                                            <el-checkbox v-for="(i,_i) in 7" :key="i" style="width:40px;"  :label="i">{{i}}</el-checkbox>
-                                                        </el-checkbox-group>
-                                                    </div>
-                                                </template>
+                                                <span @click="_clearCron(item.config.frequency.__w)"><el-radio
+                                                        v-model="item.config.frequency.w" label="1">每周</el-radio></span>
+                                                    <br>
+                                                    <el-radio v-model="item.config.frequency.w" label="2">指定周</el-radio>
+                                                    <template v-if="item.config.frequency.w == 2">
+                                                        <div>
+                                                            <el-checkbox-group v-model="item.config.frequency.__w">
+                                                                <el-checkbox v-for="(i,_i) in 7" :key="i"
+                                                                             style="width:40px;" :label="i">{{i}}
+                                                                </el-checkbox>
+                                                            </el-checkbox-group>
+                                                        </div>
+                                                    </template>
 
-                                            </el-tab-pane>
-                                        </el-tabs>
-                                    </template>
+                                                </el-tab-pane>
+                                            </el-tabs>
+                                        </template>
+                                    </div>
+
 
                                 </div>
                             </template>
 
+
                             <!--抓取节点的字段映射组件  有上级节点 && 控件名叫 mappingJson && config存在-->
-                            <div v-if="setting[type].preId && item.paramEnName == 'mappingJson' && item.config" >
+                            <div v-if="setting[type].preId && item.paramEnName == 'mappingJson' && item.config">
                                 <table class="m-t table table-hover table-striped">
                                     <thead>
                                     <tr>
@@ -434,8 +516,10 @@
                                     <tr v-for="(p,_i) in  item.config.param">
                                         <td>{{p.paramCnName}}</td>
                                         <td>
-                                            <el-select v-model="item.config.param[_i].value">
-                                                <el-option v-for="o in item.config.output" :key="o.id" :value="o.id" :label="o.fieldCnName">{{o.fieldCnName}}</el-option>
+                                            <el-select v-model="item.config.param[_i].value" >
+                                                <el-option v-for="o in item.config.output" :key="o.id" :value="o.id"
+                                                           :label="o.fieldCnName">{{o.fieldCnName}}
+                                                </el-option>
                                             </el-select>
                                         </td>
                                     </tr>
@@ -484,42 +568,221 @@
                             </template>
 
                             <!--分析对象-->
-                            <template v-if="type == 'semanticAnalysisObject' && item.styleCode == 'other' && item.config">
-                                <el-form-item :label="item.paramCnName+'：'" v-if="item.inputParamId != 12" >
-                                  <!--<span class="hidden"> {{ item.config = {} }} </span>-->
+                            <template  v-if="type == 'semanticAnalysisObject' && item.styleCode == 'other'">
+                                <el-form-item :label="item.paramCnName+'：'" v-if="item.inputParamId != 12">
+                                    <!--<span class="hidden"> {{ item.config = {} }} </span>-->
                                     <span v-if="!item.config" class="text-danger">请选择一个节点连接到此节点</span>
-                                   <!-- {{ _semantic_getList(item) }}-->
+                                    <!-- {{ _semantic_getList(item) }}-->
                                 </el-form-item>
 
-                                <div  class="sas" v-for="(sa,i) in item.config.sas">
-                                    <button class="btn btn-xs" type="button" v-if="i == item.config.sas.length-1" @click="item.config.sas.push({subType:1,value:'',contentType:''})">
-                                        <i class="fa fa-plus"></i>
-                                    </button>
-                                    <button class="btn btn-xs" :class="{'m-l-md':i != item.config.sas.length-1}" type="button" @click="item.config.sas.splice(i,1)">
-                                        <i class="fa fa-minus"></i>
-                                    </button>
-                                    <select class="radio-select" style="width: 85px" v-model="sa.contentType">
-                                        <option v-for="o in item.config.list" :value="o.contentType">{{o.contentTypeName}}</option>
-                                    </select>
-                                    <el-radio-group v-model="sa.subType">
-                                        <span @click="sa.value = ''"><el-radio :label="1">全文</el-radio></span>
+                                <template v-if="item.config">
+                                    <div class="sas"  v-for="(sa,i) in item.config.sas">
+                                        <button class="btn btn-xs" type="button" v-if="i == item.config.sas.length-1"
+                                                @click="item.config.sas.push({subType:1,value:'',contentType:''})">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                        <button class="btn btn-xs" :class="{'m-l-md':i != item.config.sas.length-1}"
+                                                type="button" @click="item.config.sas.splice(i,1)">
+                                            <i class="fa fa-minus"></i>
+                                        </button>
+                                        <select class="radio-select" style="width: 85px" v-model="sa.contentType">
+                                            <option v-for="o in item.config.list" :value="o.fieldEnName">
+                                                {{o.fieldCnName}}
+                                            </option>
+                                        </select>
+                                        <el-radio-group v-model="sa.subType">
+                                            <span @click="sa.value = ''"><el-radio :label="1">全文</el-radio></span>
 
-                                        <el-radio :label="2"><input type="number" v-if="sa.subType == '2'" v-model.number="sa.value" class="radio-input" >字</el-radio>
-                                        <el-radio :label="3"><input type="number" v-if="sa.subType == '3'" v-model.number="sa.value" class="radio-input" >段</el-radio>
-                                        <el-radio :label="4"><input type="number" v-if="sa.subType == '4'" v-model.number="sa.value" class="radio-input" >句</el-radio>
+                                            <el-radio :label="2"><input type="number" v-if="sa.subType == '2'"
+                                                                        v-model.number="sa.value" class="radio-input">字
+                                            </el-radio>
+                                            <el-radio :label="3"><input type="number" v-if="sa.subType == '3'"
+                                                                        v-model.number="sa.value" class="radio-input">段
+                                            </el-radio>
+                                            <el-radio :label="4"><input type="number" v-if="sa.subType == '4'"
+                                                                        v-model.number="sa.value" class="radio-input">句
+                                            </el-radio>
+                                        </el-radio-group>
+                                    </div>
+                                </template>
+
+                            </template>
+
+                            <!--已选词库-->
+                            <template v-if="item.paramEnName == 'wordLibraryList'">
+                                <div class="wordLibraryList">
+                                    <el-form-item :label="item.paramCnName+'：'" :placeholder="item.paramCnName"
+                                                  :prop="'paramArray.' + index + '.value'"
+                                                  :rules="{ required: true, message: item.paramCnName+'不能为空', trigger: 'blur',type:'array'}"
+                                    >
+                                        <template v-if="item.config">
+                                        <span  class="label bg-info m-l-sm" style="display: inline-block" v-for="select in item.config.selectList">
+                                        {{ select.split('|')[0] }}
+                                        </span>
+                                        </template>
+
+                                    </el-form-item>
+                                </div>
+                                <el-button class="m-l-lg" type="primary"  size="small" @click="_word_getLibrary(item)" :loading="item.loading">选择词库</el-button>
+                                <div class="m-t-md" v-if="item.config" >
+                                    <el-checkbox-group v-model="item.config.selectList" @change="_word_selectLibrary($event,item)">
+
+                                        <div v-for="(word,i) in item.config.list">
+                                                <el-checkbox  v-if="word.type == 0" :label="word.name+'|'+word.type" :key="i">{{word.name}}</el-checkbox>
+                                        </div>
+                                        <p>
+                                            <a class="m-l-lg" @click="item.config.show = !item.config.show">
+                                                <i class="fa fa-minus" v-show="item.config.show"></i>
+                                                <i class="fa  fa-plus" v-show="!item.config.show"></i>
+                                                项目词库
+                                            </a>
+                                        </p>
+                                        <div :class="{hidden:!item.config.show}" class="pro_lib">
+                                            <div v-for="(word,i) in item.config.list">
+
+                                                <el-checkbox  v-if="word.type == 1" :label="word.name+'|'+word.type" :key="i">{{word.name}}</el-checkbox>
+                                        </div>
+                                            </div>
+
+                                    </el-checkbox-group>
+                                </div>
+                            </template>
+
+                            <!--主题域 主题-->
+                            <template v-if="item.paramEnName == 'subjectAresName' || item.paramEnName == 'subjectNames'">
+                                <el-form-item :label="item.paramCnName+'：'" :placeholder="item.paramCnName"
+                                              :prop="'paramArray.' + index + '.value'"
+                                              class="theme"
+                                              :rules="{ required: true, message: item.paramCnName+'不能为空', trigger: 'blur',type:'string'}">
+                                    <template v-if="item.config">
+                                        <label class="label bg-info m-l-xs" v-if="item.paramEnName == 'subjectAresName'">{{ item.config.names }}</label>
+                                        <label class="label bg-info m-l-xs" v-for="name in item.config.names" v-if="item.paramEnName == 'subjectNames'">{{ name }}</label>
+                                    </template>
+
+                                </el-form-item>
+                                <el-button class="m-l-lg" v-if="item.paramEnName == 'subjectNames'" type="primary"  size="small" @click="_theme_getTheme(item)" :loading="item.loading">选择主题域</el-button>
+                                <div class="pos-rlt">
+                                    <div id="tree"  v-if="item.paramEnName == 'subjectNames'" :class="{'b-a':item.config}" class="ztree"></div>
+                                </div>
+
+                            </template>
+
+                            <!--结果策略-->
+                            <template v-if="item.paramEnName == 'resultsStrategyType'">
+                                <el-form-item :label="item.paramCnName+'：'" :placeholder="item.paramCnName"
+                                              :prop="'paramArray.' + index + '.config.resultsStrategyTypeValue'"
+                                              style="margin-top: 190px;"
+                                              :rules='{ required: true, type :"string" ,message: "请输入1-100的数值", trigger: "blur",pattern: /^([1-9]{1,2}|100)$|0/}'>
+                                </el-form-item>
+                                <div class="m-l-lg" :prop="'paramArray.' + index + '.config.resultsStrategyTypeValue'">
+                                    <span class="hidden">{{ item.config = item.config || {}  }} </span>
+                                   <!--
+                                    <span class="hidden">{{ item.config.resultsStrategyType = item.config.resultsStrategyType || '2'  }}</span>-->
+
+                                    <el-radio-group v-model="item.config.resultsStrategyType" @change="_theme_changeResult(item,'r')">
+
+                                        <div class="m-t" @click="item.config.resultsStrategyTypeValue = '0'">
+                                            <el-radio label="1">精英团</el-radio>
+                                        </div>
+                                        <div class="m-t">
+                                            <el-radio label="2">Top：<input type="number" @change="_theme_changeResult(item)" v-if="item.config.resultsStrategyType == '2'"  v-model="item.config.resultsStrategyTypeValue" class="radio-input"></el-radio>
+
+                                            <el-radio label="3"> <input type="number" @change="_theme_changeResult(item)" v-if="item.config.resultsStrategyType == '3'" v-model="item.config.resultsStrategyTypeValue" class="radio-input">%</el-radio>
+                                        </div>
+                                        <div class="m-t"><el-radio label="4">阈值<input type="number" @change="_theme_changeResult(item)" v-if="item.config.resultsStrategyType == '4'" v-model="item.config.resultsStrategyTypeValue" class="radio-input"></el-radio></div>
                                     </el-radio-group>
                                 </div>
+
+                            </template>
+
+                            <!--api形式-->
+                            <template v-if="item.paramEnName == 'apiType'">
+                                <el-form-item :label="item.paramCnName+'：'" :placeholder="item.paramCnName"
+                                              :prop="'paramArray.' + index + '.value'"
+                                              :rules='{ required: true, type :"string" ,message: "请输入1-100的数值", trigger: "blur"}'>
+                                    <span class="hidden">{{ item.value = item.value || 'Json' }}</span>
+
+                                    <el-radio-group v-model="item.value">
+                                        <div  class="m-b-sm" v-for="t in item.config.list"><el-radio  :label="t">{{t}}</el-radio></div>
+                                    </el-radio-group>
+                                </el-form-item>
+                            </template>
+
+                            <!--push频率-->
+                            <template v-if="item.paramEnName == 'PushFrequency'">
+                                <el-form-item :label="item.paramCnName+'：'" :placeholder="item.paramCnName">
+
+                                    <el-select class="PushFrequency" v-model="item.config.type">
+                                        <el-option v-for="pf in item.config.list" :value="pf.value" :label="pf.key">{{pf.key}}</el-option>
+                                    </el-select>
+                                    <el-input-number size="mini" :min="1" :step="1" style=" width: 100px;" v-model="item.config.value"></el-input-number>
+                                </el-form-item>
+                            </template>
+
+                            <template v-if="item.paramEnName == 'field'">
+                                <el-form-item :label="item.paramCnName+'：'" :placeholder="item.paramCnName"
+                                              :prop="'paramArray.' + index + '.value'"
+                                              :rules='{ required: true, type :"string" ,message: "请选择字段", trigger: "blur"}'>
+                                    <span class="text-danger" v-if="!item.config">请连接上一个节点</span>
+                                    <el-checkbox-group v-if="item.config" v-model="item.config.selection" @change="_output_SelectField($event,item)">
+                                        <el-checkbox v-for="field in item.config.list" :label="field.fieldEnName" :key="field.fieldEnName">{{field.fieldCnName}}</el-checkbox>
+                                    </el-checkbox-group>
+                                </el-form-item>
                             </template>
                         </template>
 
 
-                        <el-button @click="_dataCrawl_save">save</el-button>
-                        <el-button @click="submitForm('form')">保存</el-button>
+                        <el-button @click="submitForm('form')" type="primary" style="position: absolute; bottom: 15px; left: 44%;">确认</el-button>
                     </el-form>
 
                 </div>
                 <!--resultData-->
                 <div v-show="active_index == 2">
+                    <div id="s">
+                        <span @click="fullScreen('s')"><i class="fa fa-arrows-alt"></i></span>
+                        <el-pagination
+                                class="text-center"
+                                @size-change="handleSizeChange"
+                                @current-change="handleCurrentChange"
+                                :current-page="tableForm.currentPage"
+                                :page-size="tableForm.size"
+                                layout="total, prev, jumper, next "
+                                :total="count">
+                        </el-pagination>
+                        <el-table
+                                class="m-t"
+                                :data="dataList"
+                                border
+                                v-loading="tableLoading"
+                                element-loading-text="loading..."
+                                stripe
+                                style="width: 100%">
+
+                            <el-table-column
+                                    :label="item"
+                                    :prop="item"
+                                    v-for="(item,k) in titleList"
+                                    :key="k"
+                                    show-overflow-tooltip
+                            >
+                                <template slot-scope="scope">
+                        <span >
+                             {{ scope.row[k] }}
+                        </span>
+                                </template>
+
+                            </el-table-column>
+                        </el-table>
+                        <el-pagination
+                                class="text-center"
+                                @size-change="handleSizeChange"
+                                @current-change="handleCurrentChange"
+                                :current-page="tableForm.currentPage"
+                                :page-size="tableForm.size"
+                                layout="total, prev, jumper, next "
+                                :total="count">
+                        </el-pagination>
+                    </div>
 
                 </div>
                 <!--tip-->
@@ -534,9 +797,11 @@
 
 </div>
 <div class="shade hidden"></div>
-<!--<canvas id="c"></canvas>
+<canvas id="c"></canvas>
+<!--
 <div id="divReport" class="hidden"></div>-->
 <script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/jq.js"></script>
+<script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/jquery.ztree.all.min.js"></script>
 <script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/d3.js" charset="utf-8"></script>
 <script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/context.js"></script>
 <script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/vue.js"></script>

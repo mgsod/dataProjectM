@@ -18,8 +18,9 @@ module.exports = {
         this.adsorptionIntensity = options.adsorptionIntensity || 20; //边缘吸附强度
 
         this.isSelectStart = false; //是否已经选择起始节点
-        this.selectedNode = null;// 已选择的节点
-        this.selectedNodeData = null;//连线时 已选择节点的节点数据
+        this.selectedNode = null;// 已选择的节点 [连线时]
+        this.selectedNodeData = null;//已选择节点的节点数据 [连线时]
+        this.currentNode = null; //当前节点
 
         this.pathColor = options.pathColor || '#565656'; //线条颜色 默认 '#565656'
         this.allowPath = false; //拖拽节点时是否允许线条跟随
@@ -60,7 +61,7 @@ module.exports = {
 
 
         //缓存
-        this.reappear();
+       // this.reappear();
         this.canvas.append('svg:defs').append('svg:marker')
             .attr('id', 'end-arrow')
             .attr('viewBox', '0 -5 10 10')
@@ -191,10 +192,7 @@ module.exports = {
         g.on('click', function (d) {
             d3.event.stopPropagation()
             if (d3.event.defaultPrevented) return; //防止拖动触发单击事件
-
             _this.clickNode(g, d);
-
-
         });
 
         //绑定拖拽事件
@@ -280,18 +278,17 @@ module.exports = {
      * @param _nodeData 节点数据
      */
     clickNode: function (_node, _nodeData) {
-        console.log(_nodeData)
         var _this = this;
         if (!_this.isLine) {
-
             var type = _nodeData.nodeInfo.type;
             var data = _nodeData.data;
-            _this.clickedNode = _nodeData
+            _this.currentNode = _nodeData
             _this.vue_setting.type = type;
-
-
-            _this.vue_setting.$set(_this.vue_setting.setting, type, data)
-
+            _this.vue_setting.$set(_this.vue_setting.setting, type, data);
+            _this.vue_setting.setName(_this.vue_setting.setting[type].paramArray[0].value)
+            if (!_this.vue_setting.setting[type].paramArray[0].value) {
+                _this.vue_setting.$set(_this.vue_setting.setting[type].paramArray[0], 'value', data.typeName)
+            }
 
             _this.canvas.selectAll('g')
                 .filter(function (data) {
@@ -395,7 +392,7 @@ module.exports = {
             }
 
 
-            if(_this.selectedNodeData && _nodeData){
+            if (_this.selectedNodeData && _nodeData) {
                 var points = _this.getPoints(_this.selectedNodeData.nodeInfo.x, _this.selectedNodeData.nodeInfo.y, _nodeData.nodeInfo.x, _nodeData.nodeInfo.y);
                 _this.canvas.append('path')
                     .attr('d', function () {
@@ -404,13 +401,17 @@ module.exports = {
                     .attr("marker-end", "url(#end-arrow)")
                     .attr('from', _this.selectedNodeData.nodeInfo.name)
                     .attr('to', _nodeData.nodeInfo.name)
-                    .attr('class', function () {
-                        /*  console.log(_nodeData)
-                          if(_nodeData.data.type == 1){
+                    .attr('class', 'line')
+                    /*.attr('class', function () {
+
+                          console.log(_nodeData)
+                          if(_nodeData.data.typeNo == 'wordSegmentation'){
                               return 'strokedrect'
-                          }*/
-                        // return 'strokedrect'
-                    })
+                          }else{
+                              return 'line'
+                          }
+
+                    })*/
                     .style({
                         fill: 'none',
                         stroke: _this.pathColor,
@@ -430,12 +431,15 @@ module.exports = {
 
                     _nodeData.nodeInfo.from = _nodeData.nodeInfo.from || [];
                     _nodeData.nodeInfo.from.push(_this.selectedNodeData.nodeInfo.name);
+                    //只有非重绘情况下才出发 连线事件
                     _this.onDrawLine && _this.onDrawLine(_this.selectedNodeData, _nodeData);
                     _this.restLine();
                 } else {
-                    if (_nodeData.nodeInfo.from && _nodeData.data.typeNo == "dataCrawl") {
-                        _nodeData.data.preId = _nodeData.nodeInfo.from[0]
-                    }
+                    //重绘连线的时候 说明上节点也就是 _this.selectNodeData之前保存过.
+                    // 但数据库里并没有存这个字段. 所以这里在重绘阶段 把isSave 设置为 true
+                    _this.selectedNodeData.data.isSave = true;
+                    //同理.下节点 也就是_nodeData 需要设置preId 为上节点(_this.selectNodeData)的节点名称
+                    _nodeData.data.preId = _this.selectedNodeData.nodeInfo.name
                 }
                 _this.isReappear = false;
                 _this.isLine = false;
@@ -488,38 +492,43 @@ module.exports = {
      * @param node 选中的节点对象[d3]
      */
     delNode: function (node) {
+        this.vue_setting.$confirm('确认删除此节点?\r\n(删除节点同时删除节点关联线)','警告',{
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+        }).then(() => {
+            var _this = this;
+            var name = node.attr('id');
+            node.remove();
+            var index = _this.getNodeIndexByName(_this.nodeList, name);
 
-        var _this = this;
-        var name = node.attr('id');
-        node.remove();
-        var index = _this.getNodeIndexByName(_this.nodeList, name);
+            //删除下级节点中的preId属性
+            var next = ((_this.nodeList[index]).nodeInfo.to) || [];
+            next.length > 0 && next.map(item => {
+                var nextNode = (_this.nodeList[_this.getNodeIndexByName(_this.nodeList, item)]);
+                nextNode.data.preId = null
+            })
 
-        //删除下级节点中的preId属性
-        var next = ((_this.nodeList[index]).nodeInfo.to) || [];
-        next.length > 0 && next.map(item => {
-            var nextNode = (_this.nodeList[_this.getNodeIndexByName(_this.nodeList, item)]);
-            nextNode.data.preId = null
+            //从数组中移除此节点
+            _this.nodeList.splice(index, 1);
+
+            //删除线条
+            d3.selectAll('[from=' + name + ']')
+                .filter(function () {
+                    _this.delPath(d3.select(this), 'from');
+
+                });
+            d3.selectAll('[to=' + name + ']')
+                .filter(function () {
+                    _this.delPath(d3.select(this), 'to');
+                });
+
+            //绑定拖拽事件
+            _this.canvas.selectAll('g')
+                .call(_this.drag(_this));
+            _this.selectedNodeData = null;
+        }).catch(() => {
         })
-
-        //从数组中移除此节点
-        _this.nodeList.splice(index, 1);
-
-        //删除线条
-        d3.selectAll('[from=' + name + ']')
-            .filter(function () {
-                _this.delPath(d3.select(this), 'from');
-
-            });
-        d3.selectAll('[to=' + name + ']')
-            .filter(function () {
-                _this.delPath(d3.select(this), 'to');
-            });
-
-
-        //绑定拖拽事件
-        _this.canvas.selectAll('g')
-            .call(_this.drag(_this));
-        _this.selectedNodeData = null;
     },
 
     /**
@@ -739,10 +748,10 @@ module.exports = {
      * 节点重现
      * @returns {boolean}
      */
-    reappear: function () {
-        var nodeList = sessionStorage.nodeList;
+    reappear: function (nodeList) {
+        var nodeList = nodeList || JSON.parse(sessionStorage.nodeList);
         if (!nodeList) return false;
-        this.nodeList = JSON.parse(nodeList);
+        this.nodeList = nodeList
         this.createNode();
         var nodeListLen = this.nodeList.length;
 
