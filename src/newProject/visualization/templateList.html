@@ -57,6 +57,7 @@
                         :data="templateList"
                         border
                         stripe
+                        v-loading="tableLoading"
                         style="width: 100%"
                 >
                     <el-table-column
@@ -101,9 +102,9 @@
                             <el-dialog
                                     title="预览"
                                     :visible.sync="dialogVisible"
-                                    width="40%"
+                                    width="70%"
                                     >
-                                <img :src="reviewUrl" :s="reviewUrl"  style="width: 100%" alt="" >
+                                <img :src="reviewUrl+'?t='+Date.parse(new Date())"   style="width: 100%;min-height: 660px;" alt="" >
                             </el-dialog>
                         </template>
                     </el-table-column>
@@ -115,7 +116,7 @@
                            @size-change="sizeChange"
                            @current-change="pageChange"
                            :current-page="form.page"
-                           :page-sizes="[15, 30, 50]"
+                           :page-sizes="[10, 30, 50]"
                            :page-size="form.size"
                            layout="total, sizes, prev, pager, next, jumper"
                            :total="total">

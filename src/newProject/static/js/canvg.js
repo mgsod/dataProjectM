@@ -2380,10 +2380,10 @@
 				var self = this;
 				this.img.onload = function() { self.loaded = true; }
 				this.img.onerror = function() { svg.log('ERROR: image "' + href + '" not found'); self.loaded = true; }
-				this.img.src = href;
+				this.img.src = href+"?"+new Date().getTime()
 			}
 			else {
-				this.img = svg.ajax(href);
+				this.img = svg.ajax(href+"?"+new Date().getTime());
 				this.loaded = true;
 			}
 

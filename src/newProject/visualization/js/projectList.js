@@ -13,13 +13,13 @@ var vm = new Vue({
             type: "",
             sortStatus: 'id desc',
             page: 1,
-            size: 15,
+            size: 10,
             projectType: 'vis'
         },
         managerList: [],
         customerList: [],
         projectList:[],
-
+        loading:false,
         typeList: [
             {key: '', value: '全部'},
             {key: '3', value: '日报'},
@@ -66,11 +66,13 @@ var vm = new Vue({
         },
         //获取项目列表
         getProjectList() {
+            this.loading = true
             $.post('/project/getProjectList.json', this.form, res => {
                 if (res.code === 0) {
                     this.total = res.data.count;
                     this.projectList = res.data.projectList
                 }
+                this.loading = false
             })
         },
         //创建新项目
@@ -90,7 +92,20 @@ var vm = new Vue({
         pageChange(page) {
             this.form.page = page;
             this.getProjectList()
+        },
+        //启动项目
+        startProject(id){
+            console.log(111)
+            $.post('/project/startProject.json',{projectId:id},res =>{
+                if(res.code === 0){
+                    this.$message.success('启动成功');
+                    this.getProjectList()
+                }else{
+                    this.$message.error(res.message)
+                }
+            })
         }
+
     },
     filters: {
         _status(val) {
@@ -110,8 +125,10 @@ var vm = new Vue({
     mounted() {
         this.getManagerList();
         this.getCustomerList();
-        $('body').fadeIn('fast')
+        $('body').fadeIn('fast');
         //this.getProjectList()
+
+
     }
 
 })

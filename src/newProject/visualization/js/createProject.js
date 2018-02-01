@@ -58,7 +58,11 @@ var vm = new Vue({
                 {key: '4', value: '临时项目'}
             ],
             managerList: [],
-            customerList: []
+            customerList: [],
+            reviewUrl: "/newProject/img/t.png",
+            searchTemplateName: "",
+            templateType:"0",
+            templateLoading:true
 
         }
 
@@ -78,7 +82,8 @@ var vm = new Vue({
                     $.post('/visWorkFlow/saveOrUpdateProject.json', this.form, res => {
                         if (res.code === 0) {
                             let result = res.data;
-                            location.href = "/visWorkFlow/toWorkFlow.html?projectId=" + result.projectId + "&templateId=" + result.templateId
+                            let templateId = result.templateId ? result.templateId : ''
+                            location.href = "/visWorkFlow/toWorkFlow.html?projectId=" + result.projectId + "&templateId=" + templateId;
                         } else {
                             this.$message.error(res.message)
                         }
@@ -108,6 +113,30 @@ var vm = new Vue({
                 }
             })
         },
+        //选择模板
+        selectTemplate() {
+            this.dialogVisible = true;
+            this.getTemplateList();
+        },
+        //获取模板列表
+        getTemplateList(){
+            this.templateLoading = true;
+            $.get('/workFlowTemplate/getWorkFlowTemplateListNoPage.json', {
+                workFlowTemplateName: this.searchTemplateName,
+                status: 1
+            }, res => {
+                if (res.code === 0) {
+                    this.templateList = res.data.workFlowTemplateList
+                }
+                this.templateLoading = false;
+            })
+        },
+        //选择模板方式
+        changeTemplateType(val){
+            if(val == 0){
+                this.form.workFlowTemplateId = ''
+            }
+        }
     },
     mounted() {
         this.getManagerList();

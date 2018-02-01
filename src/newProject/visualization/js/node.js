@@ -1,5 +1,8 @@
 /**
  * Created by setting on 2017/10/31 0031.
+ * 外部可以调用且修改此对象的属性及方法.
+ *  eg: let Node = require('./node.js');
+ *      Node.createNode() //调用createNode函数
  */
 
 module.exports = {
@@ -16,6 +19,7 @@ module.exports = {
         this.svgWidth = options.svgWidth; //画布宽      自动获取
         this.svgHeight = options.svgHeight; //画布高
         this.adsorptionIntensity = options.adsorptionIntensity || 20; //边缘吸附强度
+        this.path = options.path;
 
         this.isSelectStart = false; //是否已经选择起始节点
         this.selectedNode = null;// 已选择的节点 [连线时]
@@ -38,9 +42,11 @@ module.exports = {
         this.onBeforeLine = options.onBeforeLine
         this.onDrawLine = options.onDrawLine;
         this.onCreateNode = options.onCreateNode;
+        this.onDelNode = options.onDelNode;
 
 
         window.onload = setSvgSize(this);
+        window.onresize = setSvgSize(this);
         window.onbeforeunload = function () {
             /*console.log(1)
               return  "请先保存"*/
@@ -116,7 +122,7 @@ module.exports = {
                 stroke: _this.isLine ? _this.rectColor : 'black',
                 'stroke-width': _this.rectWidth
             });
-        //图片
+        //节点图片
         g.append('image')
             .attr('width', _this.nodeWidth)
             .attr('height', _this.nodeHeight)
@@ -129,7 +135,7 @@ module.exports = {
             return d.data.typeName;
         })
             .attr('class', 'nodeName')
-            .attr('y', _this.nodeHeight + _this.textHeight)
+            .attr('y', _this.nodeHeight + _this.textHeight + 15)
             .attr('x', _this.nodeWidth / 2)
             .style({
                 "text-anchor": "middle"
@@ -168,14 +174,26 @@ module.exports = {
             if (!_this.isLine) _this.clickNode(g, d)
             return d.data.inputNum;
         })
-
             .attr('y', _this.nodeHeight / 2 + 5)
             .attr('x', -10)
             .style({
                 "text-anchor": "middle",
                 fill: "#f05050"
             })
+        g.append('image')
+            .attr('width',15)
+            .attr('height', 15)
+            .attr('x',0)
+            .attr('y',62)
+            .attr('xlink:href', function (d) {
+                if(d.data.jobClassify == 1){
+                    return _this.path+"/newProject/img/icon_data.png"
+                }else{
+                    return _this.path+"/newProject/img/icon_status.png"
+                }
 
+            })
+            .attr('')
         /*    g.append('path')
                 .attr('d',"M10 0 L25 0 L0 25 L0 10 ")
                 .style({
@@ -260,7 +278,7 @@ module.exports = {
                 }
             }
             //判断是否有节点可以碰撞. 如果有则拖动结束
-            if (minDistances > -1 && _this.isCollisionWithRect(_nodeData.nodeInfo.x, _nodeData.nodeInfo.y, _this.nodeWidth, _this.nodeHeight + 18, collisionArr[minDistances].nodeInfo.x, collisionArr[minDistances].nodeInfo.y)) {
+            if (minDistances > -1 && _this.isCollisionWithRect(_nodeData.nodeInfo.x, _nodeData.nodeInfo.y, _this.nodeWidth + 15, _this.nodeHeight + 30, collisionArr[minDistances].nodeInfo.x, collisionArr[minDistances].nodeInfo.y)) {
                 _this.allowPath = false;
                 return false;
             } else {
@@ -523,6 +541,8 @@ module.exports = {
                     _this.delPath(d3.select(this), 'to');
                 });
 
+            _this.onDelNode && _this.onDelNode()
+
             //绑定拖拽事件
             _this.canvas.selectAll('g')
                 .call(_this.drag(_this));
@@ -724,12 +744,12 @@ module.exports = {
                 _x1 = x1 + this.nodeWidth / 2;
                 _y1 = y1;
                 _x2 = x2 + this.nodeWidth / 2;
-                _y2 = y2 + this.nodeHeight + 15;
+                _y2 = y2 + this.nodeHeight + 30;
                 return [[_x1, _y1], [_x2, _y2]];
                 break;
             case 'bottom':
                 _x1 = x1 + this.nodeWidth / 2;
-                _y1 = y1 + this.nodeHeight + 15;
+                _y1 = y1 + this.nodeHeight + 30;
                 _x2 = x2 + this.nodeWidth / 2;
                 _y2 = y2;
                 return [[_x1, _y1], [_x2, _y2]];

@@ -75,11 +75,7 @@ let aside = `<div class="aside">
                         模板列表
                     </a>
                 </el-menu-item>
-                <el-menu-item index="3-3">
-                    <a slot="title" href="#">
-                        可视化文件导出
-                    </a>
-                </el-menu-item>
+                
                 
             </el-submenu>
         </el-menu>

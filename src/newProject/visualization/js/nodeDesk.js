@@ -4,7 +4,12 @@
 let Node = require('./node.js');
 import '../css/node_etc.css';
 
-var nodeList = [];//节点集合
+const action = getQueryString('action');
+const projectId = getQueryString('projectId');
+const templateId = getQueryString('templateId');
+const freemarkerPath = $("#freemarkerPath").val()
+let nodeList = [];//节点集合
+//左侧面板
 let Vue_nodeList = new Vue({
     name: 'nodeList',
     el: '#NodeList',
@@ -60,6 +65,7 @@ let Vue_nodeList = new Vue({
 
     },
 });
+//右侧面板
 let Vue_setting = new Vue({
     name: 'nodeSetting',
     el: '#setting',
@@ -69,7 +75,6 @@ let Vue_setting = new Vue({
         first: false,
         dialogVisible: false,
         setting: {},
-        test: {},
         isShow: false,
         isFullScreen: false,
         active_index: 1,
@@ -97,15 +102,22 @@ let Vue_setting = new Vue({
         activeTabs: 's',
         dataList: [],
         count: 0,
-        titleList:[],
-        tableForm:{
-            currentPage:1,
-            lastIndexId:"",
-            projectId:getQueryString('projectId'),
-            size:15
+        titleList: [],
+        tableForm: {
+            currentPage: 1,
+            lastIndexId: "",
+            projectId: projectId,
+            size: 15
         },
-
-        tableLoading:false
+        tableLoading: false,
+        nodeTableData:{
+            page:1,
+            size:14,
+            projectId: projectId,
+            flowDetailId: "",
+            flag:"",
+            lastIndexId:""
+        }
     },
     methods: {
         //面板开关
@@ -139,22 +151,35 @@ let Vue_setting = new Vue({
                 this.getDataList()
             }
         },
-        getDataList(){
+        //获取节点查看数据
+        getDataList() {
             this.tableLoading = true;
-            var flowDetailId = this.setting[this.type].flowDetailId;
-            $.post('/visWorkFlow/getWorkFlowNodeData.json', {projectId: 301, flowDetailId: 906}, res => {
+            let flowDetailId = this.setting[this.type].flowDetailId;
+            this.nodeTableData.flowDetailId = flowDetailId
+            $.post('/visWorkFlow/getWorkFlowNodeData.json',this.nodeTableData , res => {
                 if (res.code === 0) {
                     this.dataList = res.data.dataList;
                     this.count = parseInt(res.data.count);
                     this.titleList = res.data.titleList;
-                }else{
+                } else {
                     this.$message.error(res.message)
                 }
                 this.tableLoading = false;
             })
         },
-        handleSizeChange(){},
-        handleCurrentChange(){},
+        handleSizeChange(page) {
+        },
+        handleCurrentChange(page) {
+            let flag = this.nodeTableData.page - page > 0 ? 'pre' : 'next';
+            let id_index = this.titleList.indexOf('indexId');
+            let length = this.dataList.length;
+            let lastIndexId  = flag === 'next' ? this.dataList[length-1][id_index] : this.dataList[0][id_index];
+            this.nodeTableData.lastIndexId = lastIndexId;
+            this.nodeTableData.flag = flag;
+            this.nodeTableData.page = page;
+
+            this.getDataList();
+        },
         //点击select框
         focusSelect(item) {
             let preId = item.preParamId;
@@ -167,9 +192,9 @@ let Vue_setting = new Vue({
         },
         //寻找上级节点
         foundPreNode(item) {
-            var preId = item.preId;
+            let preId = item.preId;
             if (preId) {
-                var preNode = nodeList[Node.getNodeIndexByName(nodeList, preId)];
+                let preNode = nodeList[Node.getNodeIndexByName(nodeList, preId)];
                 return preNode
             }
         },
@@ -195,8 +220,8 @@ let Vue_setting = new Vue({
             //由于属性面板中的删除按钮无法获得鼠标点击的对象 所以通过Node.currentNode(当前选中的节点)来获取name
             //画布中的节点id = 节点的name 所以用d3.select('#'+name) 即可拿到当前欲删除的节点对象
             //然后调用Node.delNode();
-            var nodeName = Node.currentNode.nodeInfo.name;
-            var node = d3.select('#' + node);
+            let nodeName = Node.currentNode.nodeInfo.name;
+            let node = d3.select('#' + nodeName);
             Node.delNode(node)
         },
         //更改select值
@@ -219,22 +244,22 @@ let Vue_setting = new Vue({
                 })
             }
 
-            if (this.type == "dataCrawl" && item.paramEnName == "datasouceTypeId") {
+            if (this.type == "dataCrawl" && item.paramEnName == "datasourceTypeId") {
                 //设置抓取频次
                 this.$set(item.config, 'frequency', JSON.parse(JSON.stringify(this.frequency)))
                 //设置节点映射
-                var mapNode = this.getWidgetByParamEnName(this.setting[this.type], 'mappingJson');//寻找映射表的节点
-                var mapNodeUrls = mapNode.requestUrl.split(',');
+                let mapNode = this.getWidgetByParamEnName(this.setting[this.type], 'mappingJson');//寻找映射表的节点
+                let mapNodeUrls = mapNode.requestUrl.split(',');
                 //寻找上级抓取节点数据源id
-                var preId = this.setting[this.type].preId
+                let preId = this.setting[this.type].preId
 
                 if (preId) {
-                    var preNode = nodeList[Node.getNodeIndexByName(nodeList, preId)];
-                    var perNode_dataSourceType = preNode.data.paramArray.filter(kj => {
-                        return kj.paramEnName == "datasouceTypeId";
+                    let preNode = nodeList[Node.getNodeIndexByName(nodeList, preId)];
+                    let perNode_dataSourceType = preNode.data.paramArray.filter(kj => {
+                        return kj.paramEnName == "datasourceTypeId";
                     })[0];
 
-                    var preNodeDataSourceTypeId = perNode_dataSourceType.value
+                    let preNodeDataSourceTypeId = perNode_dataSourceType.value
                     $.get(mapNodeUrls[1] + itemValue, res => {
                         if (res.code == 0) {
                             console.log(res.data)
@@ -283,16 +308,16 @@ let Vue_setting = new Vue({
         },
         //导入节点 选择文件事件
         dataImport_fileChange(e, item) {
-            var value = e.target.value;
-            var pos = value.lastIndexOf("\\");
+            let value = e.target.value;
+            let pos = value.lastIndexOf("\\");
             this.$set(item, 'fileName', (value.substring(pos + 1)))
 
         },
         //导入节点上传文件事件
         submitUpload(item) {
-            var dataSourceId = this.getWidgetByParamEnName(this.setting[this.type], 'typeName').value
+            let dataSourceId = this.getWidgetByParamEnName(this.setting[this.type], 'typeName').value
             let formData = new FormData();
-            var file = document.getElementById('dataImport_input_file').files[0];
+            let file = document.getElementById('dataImport_input_file').files[0];
             formData.append('file', file);
             $.ajax({
                 url: item.requestUrl + '?id=' + dataSourceId,
@@ -302,7 +327,7 @@ let Vue_setting = new Vue({
                 processData: false,
                 success: function (res) {
                     if (res.code === 0) {
-                        var fieldAnnotationObj = {};
+                        let fieldAnnotationObj = {};
                         res.data.fieldNameList.map((item, index) => {
                             fieldAnnotationObj[item] = res.data.fieldAnnotationList[index]
                         })
@@ -320,9 +345,9 @@ let Vue_setting = new Vue({
         },
         //导入节点选择字段映射
         selectFieldName(v, item) {
-            var tempArr = [];
-            var list = item.config.tempFieldList;
-            for (var i in list) {
+            let tempArr = [];
+            let list = item.config.tempFieldList;
+            for (let i in list) {
                 if (list[i] != "") {
                     tempArr.push(list[i])
                 }
@@ -332,21 +357,21 @@ let Vue_setting = new Vue({
         },
         //导入节点数据整理
         _dataImport_getMapTableData(item) {
-            var file_origainRelation = item.paramArray.filter(param => {
-                return param.inputParamId == 13 || param.inputParamId == 4;
-            })
-            if (!file_origainRelation[0].config) return false;
-            var mappingList = file_origainRelation[0].config.tempFieldList;
-            var newMapping = [];
-            for (var i in mappingList) {
+            //文件上传控件
+            let widget_file = this.getWidgetByParamEnName(item, 'url');
+            let widget_originRelation = this.getWidgetByParamEnName(item, 'origainRelation');
+
+            if (!widget_file.config) return false;
+            let mappingList = widget_file.config.tempFieldList;
+            let newMapping = [];
+            for (let i in mappingList) {
                 newMapping.push({
                     key: mappingList[i],
                     value: i
                 })
             }
-            file_origainRelation[1].value = newMapping
+            widget_originRelation.value = newMapping
         },
-
 
         //抓取节点 文件上传触发
         _dataCrawl_fileTrigger() {
@@ -354,13 +379,13 @@ let Vue_setting = new Vue({
         },
         //选择文件
         _dataCrawl_fileChange(e, prop) {
-            var value = e.target.value;
-            var pos = value.lastIndexOf("\\");
+            let value = e.target.value;
+            let pos = value.lastIndexOf("\\");
             this.$set(prop, 'fileName', (value.substring(pos + 1)));
 
             //立即上传
-            var formData = new FormData();
-            var file = document.getElementById('_dataCrawl_inputFile').files[0];
+            let formData = new FormData();
+            let file = document.getElementById('_dataCrawl_inputFile').files[0];
             formData.append('file', file);
             $.ajax({
                 url: "/dataCrawl/uploadFile.json",
@@ -370,7 +395,7 @@ let Vue_setting = new Vue({
                 processData: false,
                 success: function (res) {
                     if (res.code === 0) {
-                        var obj = {
+                        let obj = {
                             value: $('#input-file-value').val(),
                             file: res.data.url
                         }
@@ -393,10 +418,10 @@ let Vue_setting = new Vue({
         },
         //获取Cron表达式
         getCron(frequency) {
-            var getSel = (arr => {
+            let getSel = (arr => {
                 return arr.join(',');
             })
-            var CronArr = frequency.Cron.split(' ');
+            let CronArr = frequency.Cron.split(' ');
             for (let i = 0; i < CronArr.length; i++) {
 
                 if (i === 0) {
@@ -430,47 +455,52 @@ let Vue_setting = new Vue({
         //抓取节点整理动态组件数据
         _dataCrawl_dynaData(item) {
             //数据源类型控件
-            var dataSourceType = item.paramArray.filter(ds => {
-                return ds.inputParamId == 7
-            })[0]
+            let widget_dataSourceType = this.getWidgetByParamEnName(item, 'datasourceTypeId')
             //对应数据源类型id的动态控件
-            if (!dataSourceType.config) return false;
-            var prop = dataSourceType.config.list.filter(_prop => {
-                return _prop.datasourceTypeId == dataSourceType.value;
+            if (!widget_dataSourceType.config) return false;
+            let prop = widget_dataSourceType.config.list.filter(_prop => {
+                return _prop.datasourceTypeId == widget_dataSourceType.value;
             })[0];
             //获取填入值
-            var inputParamArray = item.paramArray.filter(ip => {
-                return ip.inputParamId == 9;
-            })[0]
+            let widget_inputParamArray = this.getWidgetByParamEnName(item, 'inputParamArray');
             //设置填入
-            inputParamArray.value = prop.inpuutParam
+            widget_inputParamArray.value = prop.inpuutParam
 
 
         },
         //抓取节点 整理抓取频次
         _dataCrawl_frequency(item) {
             //数据源类型控件
-            var dataSourceType = item.paramArray.filter(ds => {
-                return ds.inputParamId == 7
-            })[0]
+            let widget_dataSourceType = this.getWidgetByParamEnName(item, 'datasourceTypeId');
 
-            if (!dataSourceType.config) return false;
-            var Corn = this.getCron(dataSourceType.config.frequency);
+            if (!widget_dataSourceType.config) return false;
+            let Corn = this.getCron(widget_dataSourceType.config.frequency);
+
             //抓取频次控件
-            var frequency = item.paramArray.filter(fq => {
-                return fq.inputParamId == 12;
-            })[0]
-
-            frequency.value = Corn;
+            let widget_frequency = this.getWidgetByParamEnName(item, 'crawlFreq')
+            widget_frequency.value = Corn;
+        },
+        //抓取节点 映射表数组整理
+        _dataCrawl_getMapTableData(item) {
+            let widget_map = this.getWidgetByParamEnName(item, 'mappingJson')
+            let temp = [];
+            if (!widget_map.config) return false
+            widget_map.config.param.map(p => {
+                temp.push({
+                    "inputParamId": p.id,
+                    "fieldId": p.value
+                })
+            })
+            widget_map.value = temp;
         },
 
-        _dataCrawl_save() {
+        /* _dataCrawl_save() {
             //this._dataImport_getMapTableData(this.setting[this.type])
             //this.getCron()
             this._dataCrawl_dynaData(this.setting[this.type]);
             this._dataCrawl_frequency(this.setting[this.type]);
         },
-        /*//分析对象请求数据
+        //分析对象请求数据
         _semantic_getList(item, id) {
             $.get('/semanticAnalysisObject/getContentTypeList.json?dataSourceTypeId=' + id, res => {
                 if (res.code == 0) {
@@ -483,13 +513,10 @@ let Vue_setting = new Vue({
         },*/
         //分析对象数据整理
         _semantic_getData(item) {
-            var sas = item.paramArray.filter(sas => {
-                return sas.inputParamId == 18
-            })[0]
-
-            if (!sas.config) return false;
-            var sasArr = sas.config.sas;
-            var temp = [];
+            let widget_sas = this.getWidgetByParamEnName(item, 'analysisObject');
+            if (!widget_sas.config) return false;
+            let sasArr = widget_sas.config.sas;
+            let temp = [];
             sasArr.map(sa => {
                 temp.push({
                     contentType: sa.contentType,
@@ -497,7 +524,7 @@ let Vue_setting = new Vue({
                     value: sa.value
                 })
             })
-            sas.value = temp;
+            widget_sas.value = temp;
         },
         //分词节点获取词库
         _word_getLibrary(item) {
@@ -514,7 +541,7 @@ let Vue_setting = new Vue({
         },
         //分词节点词库选择
         _word_selectLibrary(selection, item) {
-            var temp = [];
+            let temp = [];
             selection.map(sel => {
                 let arr = sel.split('|');
                 temp.push({
@@ -525,12 +552,13 @@ let Vue_setting = new Vue({
             this.$set(item, 'value', temp)
 
         },
-        //分词节点获取分词对象
+        //获取上节点输出 本节点输出
         _getPreNodeOutput(item, typeNo, dataSourceType) {
             $.get(item.requestUrl, {typeNo: typeNo, dataSourceTypeId: dataSourceType}, res => {
                 if (res.code === 0) {
                     if (!item.config) this.$set(item, 'config', {});
                     this.$set(item.config, 'list', res.data)
+
                     if (item.paramEnName == 'analysisObject') {
                         this.$set(item.config, 'sas', [{subType: 1, value: "", contentType: ""}])
                     }
@@ -545,13 +573,13 @@ let Vue_setting = new Vue({
         //话题分析 数据整理
         _topic_getData(item) {
             //获取抓取频次控件
-            var widget = this.getWidgetByParamEnName(item, 'startFreqTypeName');
-            var cron = this.getCron(widget.config.frequency);
+            let widget = this.getWidgetByParamEnName(item, 'startFreqTypeName');
+            let cron = this.getCron(widget.config.frequency);
             widget.value = cron;
         },
         //主题分析 获取主题树
         _theme_getTheme(item) {
-            var treeSetting = {
+            let treeSetting = {
                 data: {
                     simpleData: {
                         enable: true,
@@ -564,16 +592,18 @@ let Vue_setting = new Vue({
                     onClick: function (e, id, node) {
                         if (node.projectPO) {
                             let themeArea = Vue_setting.getWidgetByParamEnName(Vue_setting.setting[Vue_setting.type], 'subjectAresName');
-                            Vue_setting.$set(themeArea, 'value', node.id.toString())
+
+
+                            Vue_setting.$set(themeArea, 'value', node.name)
                             Vue_setting.$set(themeArea.config, 'names', node.name)
                             let theme = Vue_setting.getWidgetByParamEnName(Vue_setting.setting[Vue_setting.type], 'subjectNames');
                             let lexContext = node.lexContextPOList;
                             let [ids, names] = [[], []];
-                            lexContext.map(item => {
-                                ids.push(item.id);
-                                names.push(item.name);
+                            lexContext.map(({id, name}) => {
+                                ids.push(id);
+                                names.push(name);
                             })
-                            Vue_setting.$set(theme, 'value', ids.join(','))
+                            Vue_setting.$set(theme, 'value', names.join(','))
                             Vue_setting.$set(theme, 'config', theme.config || {})
                             Vue_setting.$set(theme.config, 'names', names)
                         }
@@ -586,12 +616,14 @@ let Vue_setting = new Vue({
                 }
             };
 
-            var widget = this.getWidgetByParamEnName(this.setting[this.type], 'subjectAresName');
+            //请求主题树
+            let widget = this.getWidgetByParamEnName(this.setting[this.type], 'subjectAresName');
             this.$set(item, 'loading', true)
             $.get(widget.requestUrl, res => {
                 if (res.code === 0) {
                     widget.config || this.$set(widget, 'config', {});
                     this.$set(widget.config, 'list', res.data);
+                    //初始化主题树
                     $.fn.zTree.init($("#tree"), treeSetting, res.data);
                     this.$set(item, 'loading', false)
                 }
@@ -603,7 +635,7 @@ let Vue_setting = new Vue({
             let resultsStrategyTypeValue = item.config.resultsStrategyTypeValue;
             this.$set(item, 'value', ({resultsStrategyType, resultsStrategyTypeValue}))
             if (r) {
-                item.config.resultsStrategyTypeValue = '';
+                item.config.resultsStrategyTypeValue = '0';
             }
 
         },
@@ -613,14 +645,15 @@ let Vue_setting = new Vue({
         },
         //数据输出 push频率数据整理
         _output_getData(item) {
-            var widget = this.getWidgetByParamEnName(item, 'PushFrequency');
-            var {type, value} = widget.config;
+            let widget = this.getWidgetByParamEnName(item, 'PushFrequency');
+            let {type, value} = widget.config;
             this.$set(widget, 'value', value + type)
         }
 
 
     },
     watch: {
+        //深度watch 更新节点名称到视图
         'setting': {
             handler: function (val) {
                 for (let key in val) {
@@ -639,18 +672,20 @@ let Vue_setting = new Vue({
     }
 
 });
+//顶部head
 let Vue_head = new Vue({
     name: "head",
     el: "#head",
     data() {
-        var time = (rule, value, callback) => {
+        let time = (rule, value, callback) => {
             if (value) {
                 return callback()
             }
             callback(new Error('请选择起止时间'))
         }
         return {
-            saveLoading: false,
+            canvasLoading: false,
+            canvasLoading_text: "加载中...",
             editProjectDialog: false,
             tipDialog: false,
             nodeTip: [
@@ -727,13 +762,16 @@ let Vue_head = new Vue({
                     status: "设置了循环 的节点"
                 }
             ],
+            action: action,
+            //保存项目/模板的form表单
             form: {
-                projectId: getQueryString("projectId"),
-                templateId: "",
+                projectId: projectId,
+                templateId: templateId,
                 nodeList: []
             },
+            //编辑项目/模板信息的form表单
             editForm: {
-                projectId: getQueryString("projectId"),
+                projectId: projectId,
                 projectName: '',
                 projectDescribe: '',
                 managerId: "",
@@ -743,7 +781,9 @@ let Vue_head = new Vue({
                 workFlowTemplateId: '',
                 typeId: '1',
                 projectType: "vis",
-                time: ''
+                time: '',
+                templateName: "",
+                templateId: templateId
             },
             typeList: [
                 {key: '3', value: '日报'},
@@ -770,9 +810,13 @@ let Vue_head = new Vue({
         }
     },
     methods: {
+        //点击编辑
         editProject() {
-            this.getCustomerList();
-            this.getManagerList();
+            //如果是模板 编辑的时候不需要请求客户和经理列表
+            if (action != 'template') {
+                this.getCustomerList();
+                this.getManagerList();
+            }
             this.editProjectDialog = true;
         },
         //获取项目经理
@@ -796,7 +840,7 @@ let Vue_head = new Vue({
             $.get('/visWorkFlow/updateVisWorkFlowProject.json?projectId=' + this.editForm.projectId, res => {
                 if (res.code === 0) {
                     console.log(res.data)
-                    for (var i in res.data) {
+                    for (let i in res.data) {
                         this.editForm[i] = res.data[i];
                     }
                     this.editForm.time = [this.editForm.startTime, this.editForm.endTime,]
@@ -804,10 +848,12 @@ let Vue_head = new Vue({
             })
         },
         //获取节点信息
-        getProjectInt() {
+        getNodeList() {
+            this.canvasLoading = true;
+            this.canvasLoading_text = "加载中";
             $.get('/visWorkFlow/getProjectWorkFlowNodeInfo.json', {
-                    projectId: getQueryString("projectId"),
-                    templateId: getQueryString("templateId")
+                    projectId: projectId,
+                    templateId: templateId
                 },
                 res => {
                     if (res.code === 0) {
@@ -818,59 +864,30 @@ let Vue_head = new Vue({
                                 p.config = JSON.parse(p.config)
                             })
                         })
-                        //sessionStorage.nodeList = JSON.stringify(nodeList);
                         Node.reappear(nodeList);
                     }
+                    this.canvasLoading = false;
                 })
         },
         //保存项目/模板
         saveProject() {
-            this.saveLoading = true;
-            //整理数据
-            nodeList.map(item => {
-                item.froms = item.nodeInfo.from || null;
-                item.tos = item.nodeInfo.to || null;
-                item.nodeId = item.nodeInfo.name;
-                switch (item.data.typeNo) {
-                    case "dataImport":
-                        Vue_setting._dataImport_getMapTableData(item.data);
-                        break;
-                    case "dataCrawl":
-                        Vue_setting._dataCrawl_dynaData(item.data);
-                        Vue_setting._dataCrawl_frequency(item.data);
-                        break;
-                    case "semanticAnalysisObject":
-                        Vue_setting._semantic_getData(item.data)
-                        break;
-                    case "topicAnalysisDefinition":
-                        Vue_setting._topic_getData(item.data);
-                        break;
-                    case "dataOutput":
-                        Vue_setting._output_getData(item.data);
-                        break;
+            this.canvasLoading = true;
+            this.canvasLoading_text = "保存中";
+            this.form.nodeList = this.getSaveNodeListData();
+            let saveUrl = action == 'template' ? '/workFlowTemplate/saveWorkFlowTemplateNodeInfo.json' : '/visWorkFlow/savetWorkFlowProjectNodeInfo.json';
+            if (action == 'template') {
+                getSvgBase64((base64) => {
+                    let templateForm = this.form;
+                    templateForm.file = base64;
+                    $.post(saveUrl, {body: JSON.stringify(templateForm)}, this.saveSuccessCallback)
 
-                }
-            });
-            this.form.nodeList = nodeList;
-            $.post('/visWorkFlow/savetWorkFlowProjectNodeInfo.json', {body: JSON.stringify(this.form)}, res => {
-                if (res.code === 0) {
-                    var detailIds = res.data;
-                    detailIds.map(({nodeId, detailId, paramArray}) => {
-                        var node = nodeList[Node.getNodeIndexByName(nodeList, nodeId)];
-                        node.data.flowDetailId = detailId;
-                        paramArray.map(({inputParamId, paramId}) => {
-                            var widget = Vue_setting.getWidgetByParamId(node.data, inputParamId);
-                            widget.paramId = paramId
-                        })
+                })
+            } else {
+                $.post(saveUrl, {body: JSON.stringify(this.form)}, this.saveSuccessCallback)
+            }
 
-                    })
-                    this.$message.success('保存成功')
-                } else {
-                    this.$message.error(res.message)
-                }
-                this.saveLoading = false;
-            })
         },
+        //连线
         line() {
             if (Node.isLine) {
                 Node.restLine();
@@ -882,46 +899,169 @@ let Vue_head = new Vue({
                 Node.restDasharray();
             }
         },
+        //选择时间
         selectTime(val) {
             if (val) {
                 this.form.startTime = val[0];
                 this.form.endTime = val[1];
             }
         },
+        //编辑更新项目基本信息
         saveProjectBaseInfo(formName) {
             this.$refs[formName].validate((valid) => {
                 if (valid) {
-                    $.post('/visWorkFlow/saveOrUpdateProject.json', this.editForm, res => {
-                        if (res.code === 0) {
-                            this.$message.success('更新成功');
+                    let requestUrl = action == 'template' ? '/visWorkFlow/saveOrUpdateVisTemplate.json' : '/visWorkFlow/saveOrUpdateProject.json';
+                    let saveAsUrl = '/visWorkFlow/savaCopyVisWorkFlowProject.json';
+                    this.editForm.templateName = this.editForm.workFlowTemplateName
+                    if (!this.isSaveAs) {
+                        //编辑基本项目信息
+                        $.post(requestUrl, this.editForm, res => {
+                            if (res.code === 0) {
+                                this.$message.success('更新成功');
+                                this.editProjectDialog = false;
+                            } else {
+                                this.$message.error(res.message)
+                            }
+                        })
+                    } else {
+                        this.isSaveAs = false;
+                        this.canvasLoading = true;
+                        this.canvasLoading_text = "另存中...";
+                        //另存
+                        let projectForm = this.editForm;
+                        this.form.nodeList = this.getSaveNodeListData();
+                        projectForm.body = JSON.stringify(this.form);
+                        $.post(saveAsUrl, projectForm, res => {
+                            if (res.code === 0) {
+                                this.$message.success('另存成功');
+
+                            } else {
+                                this.$message.error(res.message)
+                            }
+                            this.canvasLoading = false;
                             this.editProjectDialog = false;
-                        } else {
-                            this.$message.error(res.message)
-                        }
-                    })
+                        })
+                    }
 
                 } else {
                     return false;
                 }
             });
         },
-        saveAs(){
-            showQRCode();
+        //另存为
+        saveAs() {
+            this.editProject();
+            this.isSaveAs = true;
+        },
+        //获取模板信息
+        getTemplateInfo() {
+            $.get('/workFlowTemplate/updateVisWorkFlowTemplate.json?templateId=' + templateId, res => {
+                if (res.code === 0) {
+                    this.editForm.workFlowTemplateName = res.data.name
+                }
+            })
+        },
+        //保存项目/模板成功的回调函数
+        saveSuccessCallback(res, a) {
+            this.canvasLoading = false;
+            if (res.code === 0) {
+                let detailIds = res.data;
+                detailIds.map(({nodeId, detailId, paramArray}) => {
+                    let node = nodeList[Node.getNodeIndexByName(nodeList, nodeId)];
+                    node.data.flowDetailId = detailId;
+                    paramArray.map(({inputParamId, paramId}) => {
+                        let widget = Vue_setting.getWidgetByParamId(node.data, inputParamId);
+                        widget.paramId = paramId
+                    })
+
+                })
+                Vue_setting.$message.success('保存成功');
+                if (this.isLeave) {
+                    if(action == 'template'){
+                        location.href = '/workFlowTemplate/toVisWorkFlowTemplateList.html';
+                    }else{
+                        location.href = '/project/projectListPage.html?type=vis';
+                    }
+                }
+            } else {
+                Vue_setting.$message.error(res.message)
+            }
+
+        },
+        //返回
+        goBack() {
+            this.$confirm('离开前是否保存对该项目的更改?', '提示', {
+                confirmButtonText: '是',
+                cancelButtonText: '否',
+                type: 'warning'
+            }).then(() => {
+                this.isLeave = true;
+                this.saveProject();
+
+            }).catch(() => {
+                if(action == 'template'){
+                    location.href = '/workFlowTemplate/toVisWorkFlowTemplateList.html';
+                }else{
+                    location.href = '/project/projectListPage.html?type=vis';
+                }
+
+            });
+        },
+        //提交前整理nodeList数据
+        getSaveNodeListData() {
+            nodeList.map(item => {
+                item.froms = item.nodeInfo.from || null;
+                item.tos = item.nodeInfo.to || null;
+                item.nodeId = item.nodeInfo.name;
+                switch (item.data.typeNo) {
+                    case "dataImport":
+                        Vue_setting._dataImport_getMapTableData(item.data);
+                        break;
+                    case "dataCrawl":
+                        Vue_setting._dataCrawl_dynaData(item.data);
+                        Vue_setting._dataCrawl_frequency(item.data);
+                        Vue_setting._dataCrawl_getMapTableData(item.data);
+                        break;
+                    case "semanticAnalysisObject":
+                        Vue_setting._semantic_getData(item.data)
+                        break;
+                    case "topicAnalysisDefinition":
+                        Vue_setting._topic_getData(item.data);
+                        break;
+                    case "dataOutput":
+                        Vue_setting._output_getData(item.data);
+                        break;
+                }
+            });
+            return nodeList;
         }
+
 
     },
     mounted: function () {
-        this.getProjectBaseInfo();
-        this.getProjectInt();
+        //获取项目基本信息
+        projectId && this.getProjectBaseInfo();
+        //获取模板基本信息
+        templateId && this.getTemplateInfo()
+        this.getNodeList();
 
     }
 })
-function showQRCode() {
-    var svgHtml = document.getElementById("container").innerHTML.trim()
-    console.log(svgHtml)
-    var canvasId = document.getElementById("c");
-    canvg(canvasId, svgHtml);
+
+//svg转canvas转base64
+function getSvgBase64(callback) {
+    let svgHtml = document.getElementById("container").innerHTML.trim()
+    let canvasId = document.getElementById("c");
+    canvg(canvasId, svgHtml, {
+        useCORS: true, //允许跨域
+        renderCallback: function () {
+            let url = canvasId.toDataURL('image/png');
+            callback(url)
+        }
+    });
+
 }
+
 //全局事件注册
 {
     $('#canvas').on('dragover', function (e) {
@@ -934,30 +1074,45 @@ function showQRCode() {
         Vue_setting.isShow = false;
     });
 
+    //初始化右键菜单插件
+    context.init({preventDoublecontext: false});
 
-
-
-
+    //绑定节点右键菜单
+    context.attach('.node', [
+        {header: '选项'},
+        {
+            text: '删除该节点', href: 'javascript:void(0);', action: function (e) {
+            let node = d3.select(context.target);
+            Node.delNode(node);
+        }
+        }
+    ]);
 
 }
 
-
+/**
+ * 初始化画布 [具体函数属性请看node.js]
+ */
 Node.init({
     canvas: d3.select('svg'),
     nodeList: nodeList,
     nodeWidth: 50,
+    path: freemarkerPath,
     vue_setting: Vue_setting,
     onNodeClick: function (d) {
-        console.log(d)
-        Vue_setting.isShow = true;
-        Vue_setting.clearFormValidate();
+        Vue_setting.isShow = true; //弹出属性面板
+        Vue_setting.clearFormValidate(); //清楚之前的表单验证结果
+
         if (d.data.typeNo == 'topicAnalysisDefinition') {
+            //设置默认值
             initConfig('startFreqTypeName', 'frequency', JSON.parse(JSON.stringify(Vue_setting.frequency)))
         }
         if (d.data.typeNo == 'themeAnalysisSetting') {
+            //设置默认值
             initConfig('resultsStrategyType', 'resultsStrategyType', '1', 'resultsStrategyTypeValue', '0')
         }
         if (d.data.typeNo == 'dataOutput') {
+            //设置默认值
             initConfig('apiType', 'list', ['Json', 'Xml']);
             initConfig('PushFrequency', 'list', [
                 {key: "每小时", value: "h"},
@@ -966,14 +1121,16 @@ Node.init({
             ], 'type', "h", 'value', "1");
 
         }
-        if(Vue_setting.active_index == 2){
+        if (Vue_setting.active_index == 2) {
             Vue_setting.getDataList();
         }
 
 
-        //单击节点初始化config配置
+        //初始化指定控件的config 第一个参数为控件名称
+        //气候参数成对出现 奇数为key 偶数为value 依次循环
         function initConfig(widgetName, ...keyValues) {
-            var widget = Vue_setting.getWidgetByParamEnName(d.data, widgetName);
+            //获取控件名
+            let widget = Vue_setting.getWidgetByParamEnName(d.data, widgetName);
             if (!widget.config) {
                 Vue_setting.$set(widget, 'config', {})
                 keyValues.map((item, i) => {
@@ -985,6 +1142,7 @@ Node.init({
         }
     },
     onBeforeLine: function (node) {
+        //连线前限制逻辑
         if (!node.data.inputNum) {
             Vue_setting.$message.error('该节点没有输入')
             Node.restLine();
@@ -998,10 +1156,13 @@ Node.init({
 
     },
     onDrawLine: function (preNode, nextNode) {
+        //设置下节点的preId = 上节点的name
+        nextNode.data.preId = preNode.nodeInfo.name
 
         $('#line').removeClass('active');
 
-        var typeNo_objName = {
+        //连线时需要对下节点的指定控件设置值并请求数据
+        let typeNo_objName = {
             'semanticAnalysisObject': 'analysisObject',
             'wordSegmentation': 'wordSegmentationObject',
             'topicAnalysisDefinition': 'topicAnalysisDefinitionObject',
@@ -1012,17 +1173,19 @@ Node.init({
             setNextNodeInput(typeNo_objName[nextNode.data.typeNo]);
         }
         if (nextNode.data.typeNo == 'dataCrawl') {
-            var nextWidget = Vue_setting.getWidgetByParamEnName(nextNode.data, 'datasouceTypeId');
+            let nextWidget = Vue_setting.getWidgetByParamEnName(nextNode.data, 'datasourceTypeId');
             Vue_setting.$set(nextWidget, 'value', '')
         }
 
-        //设置下个节点输入 [语义节点,]
+        //设置下个节点控件的输入参数
         function setNextNodeInput(widgetName) {
-            var nextWidget = Vue_setting.getWidgetByParamEnName(nextNode.data, widgetName);
-            var preWidget_dataSourceTypeId = preNode.data.paramArray.filter(_ => {
-                return _.paramEnName == 'datasouceTypeId';
+            let nextWidget = Vue_setting.getWidgetByParamEnName(nextNode.data, widgetName); //获取控件名称
+            //获取上节点数据源类型
+            let preWidget_dataSourceTypeId = preNode.data.paramArray.filter(_ => {
+                return _.paramEnName == 'datasourceTypeId';
             })[0];
-            var dataSourceTypeId = preWidget_dataSourceTypeId ? preWidget_dataSourceTypeId.value : ''
+            let dataSourceTypeId = preWidget_dataSourceTypeId ? preWidget_dataSourceTypeId.value : ''
+            //传入下节点控件,上节点类型,数据源类型id 请求数据
             Vue_setting._getPreNodeOutput(nextWidget, preNode.data.typeNo, dataSourceTypeId);
         }
 
@@ -1032,36 +1195,12 @@ Node.init({
         Vue_setting.isShow = true;
         Node.saveNodeInfo();
     },
-    onDelPath: function () {
-
+    onDelNode: function () {
+        Vue_setting.isShow = false;
+        Vue_setting.type = '';
     }
 });
-nodeList = Node.nodeList;
 
-//初始化右键菜单插件
-context.init({preventDoublecontext: false});
-
-//绑定节点右键菜单
-context.attach('.node', [
-    {header: 'Options'},
-    {
-        text: 'Del', href: '#', action: function (e) {
-        let node = d3.select(context.target);
-        Node.delNode(node);
-    }
-    }
-]);
-
-//绑定线条右键菜单
-context.attach('.line', [
-    {header: 'Options'},
-    {
-        text: 'Del', href: '#', action: function (e) {
-        let path = d3.select(context.target);
-        Node.delPath(path)
-    }
-    }
-]);
 
 //html5拖拽结束 阻止默认行为
 function allowDrop(ev) {
@@ -1104,7 +1243,6 @@ function drop(ev) {
         Node.createNode();
 
     }
-
 }
 
 /**
@@ -1113,8 +1251,8 @@ function drop(ev) {
  * @returns {null}
  */
 function getQueryString(name) {
-    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-    var r = window.location.search.substr(1).match(reg);
+    let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    let r = window.location.search.substr(1).match(reg);
     if (r != null) return unescape(r[2]);
     return null;
 }

@@ -75,41 +75,45 @@
                         </el-form-item>
 
                         <el-form-item label="选择模板：" prop="workFlowTemplateId">
-                            <el-select v-model="form.workFlowTemplateId" placeholder="选择模板">
+                            <el-select v-model="templateType" placeholder="选择模板" @change="changeTemplateType">
                                 <el-option value="0" label="自定义模板"></el-option>
                                 <el-option value="1" label="选择模板"></el-option>
                             </el-select>
-                            <a  class="text-info m-l-md" @click="dialogVisible = true"><i class="el-icon-plus"></i>选择模板</a>
+                            <a  class="text-info m-l-md" @click="selectTemplate" v-show="templateType == 1"><i class="el-icon-plus"></i>选择模板</a>
                             <span class="text-muted m-l" v-show="form.workFlowTemplateId">已选模板：{{temp_templateName}}</span>
                             <el-dialog title="选择模板" :visible.sync="dialogVisible" width="40%" :close-on-click-modal="false" :close-on-press-escape="false"	>
-                               模板名称： <el-input size="medium" style="width: 220px;" class="m-r"></el-input>
-                                <el-button type="primary" @click="innerVisible = true">搜索</el-button>
-                                <el-table
-                                        :data="templateList"
-                                        border
-                                        stripe
-                                        class="m-t"
-                                        style="width: 100%">
-                                    <el-table-column
-                                            prop="templateName"
-                                            label="模板名称"
-                                            >
-                                    </el-table-column>
-                                    <el-table-column
-                                            label="操作"
-                                            >
-                                        <template slot-scope="scope">
-                                            <a class="text-waring m-r">预览</a>
-                                            <el-button :type="scope.row.templateId == form.workFlowTemplateId ? 'success' : ''"  size="mini" :icon="scope.row.templateId == form.workFlowTemplateId ? 'el-icon-check' : ''" @click="form.workFlowTemplateId = scope.row.templateId;temp_templateName = scope.row.templateName;">{{scope.row.templateId == form.workFlowTemplateId ? '' : '选择'}}</el-button>
-                                        </template>
-                                    </el-table-column>
-                                </el-table>
+                               模板名称： <el-input size="medium" style="width: 220px;" v-model="searchTemplateName" class="m-r"></el-input>
+                                <el-button type="primary" @click="getTemplateList">搜索</el-button>
+                                <div class="templateList">
+                                    <el-table
+                                            :data="templateList"
+                                            border
+                                            v-loading="templateLoading"
+                                            stripe
+                                            class="m-t"
+                                            style="width: 100%">
+                                        <el-table-column
+                                                prop="name"
+                                                label="模板名称"
+                                        >
+                                        </el-table-column>
+                                        <el-table-column
+                                                label="操作"
+                                        >
+                                            <template slot-scope="scope">
+                                                <a class="text-waring m-r" @click="innerVisible = true;reviewUrl = scope.row.imgUrl">预览</a>
+                                                <el-button :type="scope.row.id == form.workFlowTemplateId ? 'success' : ''"  size="mini" :icon="scope.row.id == form.workFlowTemplateId ? 'el-icon-check' : ''" @click="form.workFlowTemplateId = scope.row.id;temp_templateName = scope.row.name;">{{scope.row.templateId == form.workFlowTemplateId ? '' : '选择'}}</el-button>
+                                            </template>
+                                        </el-table-column>
+                                    </el-table>
+                                </div>
+
                                 <el-dialog
                                         width="65%"
                                         title="预览"
                                         :visible.sync="innerVisible"
                                         append-to-body>
-                                    <img style="width:100%;" src="/newProject/img/t.png" alt="">
+                                    <img style="width:100%;" :src="reviewUrl" alt="">
                                 </el-dialog>
                                 <span slot="footer" class="dialog-footer">
                                      <el-button @click="dialogVisible = false;form.workFlowTemplateId = '';">取 消</el-button>

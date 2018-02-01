@@ -10,10 +10,10 @@
     <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/css/font-awesome.min.css">
     <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/css/element.css">
     <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/css/zTreeStyle.css">
-
+    
 </head>
 <body style="display: none;">
-
+<input type="hidden" id="freemarkerPath"  value="<%= htmlWebpackPlugin.options.freemarkerPath %>">
 <div class="content">
     <div class="tab b-r" id="NodeList" v-cloak>
 
@@ -119,19 +119,29 @@
                     &nbsp;
                 </div>
                 <div class="col-sm-3 text-left text-warning-dker">
+                    <span v-if="action == 'template'">
+                        {{editForm.workFlowTemplateName}}
+                    </span>
                     {{editForm.projectName}}
                     <a @click="editProject">
                         <i class="fa fa-edit text-dark m-l"></i>
                     </a>
-                    <el-dialog title="编辑项目详情" :visible.sync="editProjectDialog">
+                    <el-dialog :title="action == 'template' ? '编辑模板信息' : '编辑项目详情'" :visible.sync="editProjectDialog">
                         <el-row>
                             <el-col :span="15">
                                 <el-form :model="editForm" :rules="rules" ref="editForm" label-width="200px"
                                          class="demo-ruleForm">
-                                    <el-form-item label="项目名称：" prop="projectName">
-                                        <el-input v-model="editForm.projectName"></el-input>
-                                    </el-form-item>
+                                   <template v-if="action == 'template'">
+                                       <el-form-item label="模板名称：" prop="workFlowTemplateName"
+                                                     :rules="{ required: true, message: '模板名称不能为空', trigger: 'blur'}">
+                                           <el-input v-model="editForm.workFlowTemplateName"></el-input>
+                                       </el-form-item>
+                                   </template>
 
+                                    <template v-if="action != 'template'">
+                                        <el-form-item label="项目名称：" prop="projectName">
+                                            <el-input v-model="editForm.projectName"></el-input>
+                                        </el-form-item>
                                     <el-form-item label="项目描述：">
                                         <el-input type="textarea" v-model="editForm.projectDescribe"></el-input>
                                     </el-form-item>
@@ -155,7 +165,6 @@
                                         </el-select>
                                     </el-form-item>
 
-
                                     <el-form-item label="客户：" prop="customerId">
                                         <el-select v-model="editForm.customerId" placeholder="客户">
                                             <el-option
@@ -178,6 +187,10 @@
                                                 end-placeholder="结束日期">
                                         </el-date-picker>
                                     </el-form-item>
+
+                                    </template>
+
+
                                 </el-form>
 
                             </el-col>
@@ -197,18 +210,18 @@
                         连线
                     </button>
                     <button class="btn btn-default" id="save" @click="saveProject"
-                            v-loading.fullscreen.lock="saveLoading"
-                            element-loading-text="保存中"
+                            v-loading.fullscreen.lock="canvasLoading"
+                            :element-loading-text="canvasLoading_text"
                             element-loading-spinner="el-icon-loading"
                             >
                         <i class="fa fa-save"></i>
                         保存
                     </button>
-                    <button class="btn btn-default">
+                    <button @click="goBack" class="btn btn-default">
                         <i class="fa fa-mail-reply"></i>
                         返回
                     </button>
-                    <button class="btn btn-default" @click="saveAs">
+                    <button class="btn btn-default" @click="saveAs" v-if="action != 'template'">
                         <i class="fa fa-share-square-o"></i>
                         另存
                     </button>
@@ -280,7 +293,7 @@
 
                                 <!--抓取节点动态组件 [节点为抓取 && 控件为数据源类型 && config不为空(为啥判断看上一条判断config的原因) && 为首节点]-->
                                 <template
-                                        v-if="type == 'dataCrawl' && item.paramEnName == 'datasouceTypeId' && item.config && !setting[type].preId">
+                                        v-if="type == 'dataCrawl' && item.paramEnName == 'datasourceTypeId' && item.config && !setting[type].preId">
                                     <!--遍历config下list-->
                                     <template v-if="item.config" v-for="(props,propsId) in item.config.list">
                                         <!--如果当前选中的数据源类型 == 控件的数据源类型id -->
@@ -371,7 +384,7 @@
 
 
                             <!--抓取频次-->
-                            <template v-if="(item.config &&  item.config.frequency)   && (item.paramEnName =='datasouceTypeId' || item.paramEnName == 'startFreqTypeName')">
+                            <template v-if="(item.config &&  item.config.frequency)   && (item.paramEnName =='datasourceTypeId' || item.paramEnName == 'startFreqTypeName')">
                                 <!--!preId 就是说没有上级节点 它是抓取首节点-->
 
                                 <div  v-if="!setting[type].preId || setting[type].typeNo == 'topicAnalysisDefinition'">
@@ -672,7 +685,7 @@
                                 <el-form-item :label="item.paramCnName+'：'" :placeholder="item.paramCnName"
                                               :prop="'paramArray.' + index + '.config.resultsStrategyTypeValue'"
                                               style="margin-top: 190px;"
-                                              :rules='{ required: true, type :"string" ,message: "请输入1-100的数值", trigger: "blur",pattern: /^([1-9]{1,2}|100)$|0/}'>
+                                              :rules='{ required: true, type :"string" ,message: "请输入1-100的数值", trigger: "blur",pattern:/^([1-9]{1,2}|100)$|0/}'>
                                 </el-form-item>
                                 <div class="m-l-lg" :prop="'paramArray.' + index + '.config.resultsStrategyTypeValue'">
                                     <span class="hidden">{{ item.config = item.config || {}  }} </span>
@@ -713,7 +726,7 @@
                                 <el-form-item :label="item.paramCnName+'：'" :placeholder="item.paramCnName">
 
                                     <el-select class="PushFrequency" v-model="item.config.type">
-                                        <el-option v-for="pf in item.config.list" :value="pf.value" :label="pf.key">{{pf.key}}</el-option>
+                                        <el-option v-for="pf in item.config.list" :value="pf.value" :key="pf.key" :label="pf.key">{{pf.key}}</el-option>
                                     </el-select>
                                     <el-input-number size="mini" :min="1" :step="1" style=" width: 100px;" v-model="item.config.value"></el-input-number>
                                 </el-form-item>
@@ -740,15 +753,6 @@
                 <div v-show="active_index == 2">
                     <div id="s">
                         <span @click="fullScreen('s')"><i class="fa fa-arrows-alt"></i></span>
-                        <el-pagination
-                                class="text-center"
-                                @size-change="handleSizeChange"
-                                @current-change="handleCurrentChange"
-                                :current-page="tableForm.currentPage"
-                                :page-size="tableForm.size"
-                                layout="total, prev, jumper, next "
-                                :total="count">
-                        </el-pagination>
                         <el-table
                                 class="m-t"
                                 :data="dataList"
@@ -787,7 +791,7 @@
                 </div>
                 <!--tip-->
                 <div v-show="active_index == 3" class="tip">
-                    {{setting[type].tip}}时代峻峰had发打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打打发打发打的费
+                    <div v-html="setting[type].tip"></div>
                 </div>
             </div>
 
@@ -797,7 +801,7 @@
 
 </div>
 <div class="shade hidden"></div>
-<canvas id="c"></canvas>
+<canvas class="hidden" id="c"></canvas>
 <!--
 <div id="divReport" class="hidden"></div>-->
 <script src="<%= htmlWebpackPlugin.options.freemarkerPath %>/newProject/js/jq.js"></script>

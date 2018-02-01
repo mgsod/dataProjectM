@@ -81,13 +81,14 @@
                 </el-button>
             </p>
             <el-button-group>
-                <el-button v-for="item in statusList" :key="item.k" :type="form.status === item.k ? 'primary' : ''" @click="form.status = item.k;getProjectList()">{{item.v}}</el-button>
+                <el-button v-for="item in statusList" :key="item.k" :type="form.status === item.k ? 'primary' : ''" @click="form.page = 1;form.status = item.k;getProjectList();">{{item.v}}</el-button>
             </el-button-group>
             <div class="tableList">
                 <el-table
                         :data="projectList"
                         border
                         stripe
+                        v-loading="loading"
                         @sort-change="sortChange"
                         style="width: 100%"
                         :default-sort = "{prop: 'id', order: 'descending'}"
@@ -103,7 +104,7 @@
                             label="项目名称"
                     >
                         <template slot-scope="scope">
-                            <a class="text-info">{{scope.row.name}}</a>
+                            <a class="text-info" :href="'/visWorkFlow/toWorkFlow.html?projectId='+scope.row.id">{{scope.row.name}}</a>
                         </template>
                     </el-table-column>
                     <el-table-column
@@ -143,7 +144,7 @@
                             label="状态"
                     >
                         <template slot-scope="scope">
-                            <a  class="text-info">{{scope.row.status | _status}}</a>
+                            <a  class="text-info" :href="'/visWorkFlow/toWorkFlow.html?projectId='+scope.row.id">{{scope.row.status | _status}}</a>
                         </template>
                     </el-table-column>
                     <el-table-column
@@ -152,10 +153,10 @@
                     >
                         <template slot-scope="scope" >
                             <div class="text-center op">
-                                <a class="text-waring" :href="'/visWorkFlow/toWorkFlow.html?projectId='+scope.row.id+'&action=pro'">查看</a>
-                                <a class="text-waring" v-if="scope.row.status == 2 || scope.row.status == 5 || scope.row.status == 9">启动</a>
+                                <a class="text-waring" target="_blank" :href="'/visWorkFlow/toWorkFlow.html?projectId='+scope.row.id">查看</a>
+                                <a class="text-waring" @click="startProject(scope.row.id)" v-if="scope.row.status == 2 || scope.row.status == 5 || scope.row.status == 9">启动</a>
                                 <a class="text-waring" v-if="scope.row.status == 3">停止</a>
-                                <a class="text-waring" v-if="scope.row.status == 3 || scope.row.status == 5 || scope.row.status == 9">导出</a>
+                                <a class="text-waring" :href="'/visWorkFlow//toVisWorkFlowProjecExport.html?projectId='+scope.row.id+'&name='+scope.row.name" v-if="scope.row.status == 3 || scope.row.status == 5 || scope.row.status == 9" >导出</a>
                                 <el-button size="mini" v-if="scope.row.visStatus != 0" :type="scope.row.visStatus == 2 ? 'success' : 'warning'">可视化</el-button>
                             </div>
 
@@ -169,7 +170,7 @@
                     @size-change="sizeChange"
                     @current-change="pageChange"
                     :current-page="form.page"
-                    :page-sizes="[15, 30, 50]"
+                    :page-sizes="[10, 30, 50]"
                     :page-size="form.size"
                     layout="total, sizes, prev, pager, next, jumper"
                     :total="total">
