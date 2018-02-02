@@ -35,6 +35,7 @@ module.exports = {
 
         this.isReappear = false; //是否为重现状态
         this.isLine = false; // 是否为连线状态
+        this.nodeStatus = options.nodeStatus;
 
 
         //event
@@ -67,7 +68,7 @@ module.exports = {
 
 
         //缓存
-       // this.reappear();
+        // this.reappear();
         this.canvas.append('svg:defs').append('svg:marker')
             .attr('id', 'end-arrow')
             .attr('viewBox', '0 -5 10 10')
@@ -118,7 +119,7 @@ module.exports = {
             .attr('height', _this.nodeHeight)
             .attr('rx', 2)
             .style({
-                fill: 'none',
+                fill: "none",
                 stroke: _this.isLine ? _this.rectColor : 'black',
                 'stroke-width': _this.rectWidth
             });
@@ -129,6 +130,7 @@ module.exports = {
             .attr('xlink:href', function (d) {
                 return d.data.imgUrl
             });
+        //节点名字
         g.append('text').text(function (d) {
             // return d.data.name.length > 4 ? d.data.name.substring(0,3)+'...' : d.data.name
             if (!_this.isLine) _this.clickNode(g, d)
@@ -169,6 +171,7 @@ module.exports = {
                     return "#000000"
                 }
             })
+        //节点可输入量 [可以被几条线连]
         g.append('text').text(function (d) {
             // return d.data.name.length > 4 ? d.data.name.substring(0,3)+'...' : d.data.name
             if (!_this.isLine) _this.clickNode(g, d)
@@ -180,30 +183,37 @@ module.exports = {
                 "text-anchor": "middle",
                 fill: "#f05050"
             })
+        //节点类型
         g.append('image')
-            .attr('width',15)
+            .attr('width', 15)
             .attr('height', 15)
-            .attr('x',0)
-            .attr('y',62)
+            .attr('x', 0)
+            .attr('y', 62)
             .attr('xlink:href', function (d) {
-                if(d.data.jobClassify == 1){
-                    return _this.path+"/newProject/img/icon_data.png"
-                }else{
-                    return _this.path+"/newProject/img/icon_status.png"
+                if (d.data.jobClassify == 1) {
+                    return _this.path + "/newProject/img/icon_data.png"
+                } else {
+                    return _this.path + "/newProject/img/icon_status.png"
                 }
 
+            });
+        //节点运行状态
+        g.append('circle')
+            .attr('cx', _this.nodeWidth/2)
+            .attr('cy', _this.nodeHeight +10)
+            .attr('r', 7)
+            .style('fill', function (d) {
+                return  _this.nodeStatus[d.data.jobStatus] || "none"
             })
-            .attr('')
-        /*    g.append('path')
-                .attr('d',"M10 0 L25 0 L0 25 L0 10 ")
-                .style({
-                    fill:'#23b7e5'
-                });*/
-        /*  g.append('path')
-              .attr('d', "M25 0 L40 0 L50 10 L50 25")
-              .style({
-                  fill: '#ffc107'
-              });*/
+            .style("stroke", function(d){
+                if(!d.data.jobStatus){  return "none"}
+                return "#ccc"
+            })
+            .attr('class','nodeStatus')
+            .attr('status',function(d){
+                return d.data.jobStatus
+            })
+
 
 
         //绑定单击事件
@@ -314,8 +324,6 @@ module.exports = {
                         var _this = d3.select(this);
                         _this.select('rect')
                             .style({
-                                fill: 'none',
-                                stroke: 'black',
                                 'stroke-width': _this.rectWidth
                             })
                             .attr('stroke-dasharray', 8)
@@ -338,7 +346,6 @@ module.exports = {
                         var _this = d3.select(this);
                         _this.select('rect')
                             .style({
-                                fill: 'none',
                                 'stroke-width': _this.rectWidth
                             })
                             .attr('stroke-dasharray', 8)
@@ -419,17 +426,14 @@ module.exports = {
                     .attr("marker-end", "url(#end-arrow)")
                     .attr('from', _this.selectedNodeData.nodeInfo.name)
                     .attr('to', _nodeData.nodeInfo.name)
-                    .attr('class', 'line')
-                    /*.attr('class', function () {
-
-                          console.log(_nodeData)
-                          if(_nodeData.data.typeNo == 'wordSegmentation'){
+                    //.attr('class', 'line')
+                    .attr('class', function () {
+                          if(_nodeData.data.jobStatus == 1){
                               return 'strokedrect'
                           }else{
                               return 'line'
                           }
-
-                    })*/
+                    })
                     .style({
                         fill: 'none',
                         stroke: _this.pathColor,
@@ -510,7 +514,7 @@ module.exports = {
      * @param node 选中的节点对象[d3]
      */
     delNode: function (node) {
-        this.vue_setting.$confirm('确认删除此节点?\r\n(删除节点同时删除节点关联线)','警告',{
+        this.vue_setting.$confirm('确认删除此节点?\r\n(删除节点同时删除节点关联线)', '警告', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'warning'
@@ -560,7 +564,6 @@ module.exports = {
         d3.selectAll('g')
             .select('rect')
             .style({
-                fill: 'none',
                 stroke: 'black',
                 'stroke-width': _this.rectWidth
             })

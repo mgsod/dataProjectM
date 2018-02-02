@@ -64,6 +64,23 @@ text{
 .hide{
     opacity: 0;
 }
+
+[status='1']{
+    animation:nodeStatus 1.5s infinite;
+    animation-timing-function:linear;
+}
+
+@keyframes nodeStatus
+{
+    from {fill-opacity: 1}
+    to {fill-opacity: 0}
+}
+
+@-webkit-keyframes nodeStatus /*Safari and Chrome*/
+{
+    from {fill-opacity: 1}
+    to {fill-opacity: 0}
+}
 /*svg*/
 
 /*vue*/

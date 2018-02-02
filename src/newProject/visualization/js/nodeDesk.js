@@ -629,16 +629,14 @@ let Vue_setting = new Vue({
                 }
             })
         },
-        //选择结果策略
-        _theme_changeResult(item, r) {
-            let resultsStrategyType = item.config.resultsStrategyType;
-            let resultsStrategyTypeValue = item.config.resultsStrategyTypeValue;
-            this.$set(item, 'value', ({resultsStrategyType, resultsStrategyTypeValue}))
-            if (r) {
-                item.config.resultsStrategyTypeValue = '0';
-            }
-
+        //主题分析 获取结果策略
+        _theme_getResult(item) {
+            let widget = this.getWidgetByParamEnName(item,'resultsStrategyType');
+            let { resultsStrategyType,resultsStrategyTypeValue} = widget.config
+            this.$set(widget,'value',{ resultsStrategyType,resultsStrategyTypeValue})
         },
+
+
         //数据输出 选择字段
         _output_SelectField(selection, item) {
             this.$set(item, 'value', selection.join(','))
@@ -1028,6 +1026,9 @@ let Vue_head = new Vue({
                     case "topicAnalysisDefinition":
                         Vue_setting._topic_getData(item.data);
                         break;
+                    case "themeAnalysisSetting":
+                        Vue_setting._theme_getResult(item.data);
+                        break
                     case "dataOutput":
                         Vue_setting._output_getData(item.data);
                         break;
@@ -1097,6 +1098,13 @@ Node.init({
     canvas: d3.select('svg'),
     nodeList: nodeList,
     nodeWidth: 50,
+    nodeStatus:{
+        "": "none", //无状态
+        0: "none", //未启动/待启动
+        1:"#E6A23C", //进行中
+        2:"#67C23A", //已完成
+        9:"#F56C6C" //error
+    },
     path: freemarkerPath,
     vue_setting: Vue_setting,
     onNodeClick: function (d) {
@@ -1182,7 +1190,7 @@ Node.init({
             let nextWidget = Vue_setting.getWidgetByParamEnName(nextNode.data, widgetName); //获取控件名称
             //获取上节点数据源类型
             let preWidget_dataSourceTypeId = preNode.data.paramArray.filter(_ => {
-                return _.paramEnName == 'datasourceTypeId';
+                return _.paramEnName == 'datasourceTypeId' || _.paramEnName == 'typeName';
             })[0];
             let dataSourceTypeId = preWidget_dataSourceTypeId ? preWidget_dataSourceTypeId.value : ''
             //传入下节点控件,上节点类型,数据源类型id 请求数据

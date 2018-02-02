@@ -692,17 +692,17 @@
                                    <!--
                                     <span class="hidden">{{ item.config.resultsStrategyType = item.config.resultsStrategyType || '2'  }}</span>-->
 
-                                    <el-radio-group v-model="item.config.resultsStrategyType" @change="_theme_changeResult(item,'r')">
+                                    <el-radio-group v-model="item.config.resultsStrategyType">
 
                                         <div class="m-t" @click="item.config.resultsStrategyTypeValue = '0'">
                                             <el-radio label="1">精英团</el-radio>
                                         </div>
                                         <div class="m-t">
-                                            <el-radio label="2">Top：<input type="number" @change="_theme_changeResult(item)" v-if="item.config.resultsStrategyType == '2'"  v-model="item.config.resultsStrategyTypeValue" class="radio-input"></el-radio>
+                                            <el-radio label="2">Top：<input type="number"  v-if="item.config.resultsStrategyType == '2'"  v-model="item.config.resultsStrategyTypeValue" class="radio-input"></el-radio>
 
-                                            <el-radio label="3"> <input type="number" @change="_theme_changeResult(item)" v-if="item.config.resultsStrategyType == '3'" v-model="item.config.resultsStrategyTypeValue" class="radio-input">%</el-radio>
+                                            <el-radio label="3"> <input type="number"  v-if="item.config.resultsStrategyType == '3'" v-model="item.config.resultsStrategyTypeValue" class="radio-input">%</el-radio>
                                         </div>
-                                        <div class="m-t"><el-radio label="4">阈值<input type="number" @change="_theme_changeResult(item)" v-if="item.config.resultsStrategyType == '4'" v-model="item.config.resultsStrategyTypeValue" class="radio-input"></el-radio></div>
+                                        <div class="m-t"><el-radio label="4">阈值<input type="number"  v-if="item.config.resultsStrategyType == '4'" v-model="item.config.resultsStrategyTypeValue" class="radio-input"></el-radio></div>
                                     </el-radio-group>
                                 </div>
 
